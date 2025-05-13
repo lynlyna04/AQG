@@ -39,9 +39,7 @@ function Header() {
     navigate('/');
   };
 
-  const handleGetStartedClick = () => {
-    navigate('/generate');
-  };
+
 
   return (
     <header>

@@ -34,15 +34,15 @@ function Hero() {
     onClick={handleGetStartedClick}
   >
     {language === 'en' ? 'Get started for free' : 'ابدأ مجانًا'}
-    <img src="/Icon.png" alt="icon" className={`ml-2 ${language === 'ar' ? 'scale-x-[-1] ml-[-20px]' : ''}`} />
+    <img src="/Icon.png" alt="icon" className={`ml-2 ${language === 'ar' ? 'scale-x-[-1] ml-[-20px] mr-4' : ''}`} />
   </button>
 
   <button
-    className="bg-[#FFEF9D] text-[18px] font-semibold border-2 border-black px-6 py-2 rounded-[15px] hover:bg-[#FFE768] flex items-center"
+    className="bg-[#FFEF9D] text-[18px] font-semibold border-2 border-black px-12 py-2 rounded-[15px] hover:bg-[#FFE768] flex items-center"
     onClick={() => navigate('/generate-subject')}
   >
     {language === 'en' ? 'Generate Subject' : 'إنشاء الموضوع'}
-    <img src="/Icon.png" alt="icon" className={`ml-2 ${language === 'ar' ? 'scale-x-[-1] ml-[-20px]' : ''}`} />
+    <img src="/Icon.png" alt="icon" className={`ml-2 ${language === 'ar' ? 'scale-x-[-1] ml-[-20px] mr-4' : ''}`} />
   </button>
 </div>
 
