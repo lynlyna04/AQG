@@ -83,12 +83,63 @@ function Body() {
 
 
 
-            <div className="h-250">
-                <h2 className=" flex justify-center items-center px-16  text-[48px] font-semibold"> Features at a glance</h2>
-                
+<div className="h-150">
+  <h2 className="flex justify-center items-center px-16 text-[48px] font-semibold">
+    {language === 'en' ? 'Features at a glance' : 'مميزات في لمحة'}
+  </h2>
 
+  <div className="max-w-6xl mx-auto px-4 mt-24">
+    <div className="flex flex-col md:flex-row justify-center items-center gap-8">
 
-            </div>
+      {/* Feature Card 1 */}
+      <div className="w-[320px] h-[250px] bg-white border border-black shadow-md rounded-[15px] p-6 text-center">
+        <div className="mb-4">
+          <img src="/icon1.png" alt="Icon 1" className="mx-auto w-12 h-12" />
+        </div>
+        <h3 className="text-xl font-semibold mb-2">
+          {language === 'en' ? 'Automatic Question Generation' : 'توليد الأسئلة تلقائيًا'}
+        </h3>
+        <p className="text-gray-700">
+          {language === 'en'
+            ? 'Generate meaningful questions from any Arabic text using AI.'
+            : 'قم بتوليد أسئلة هادفة من أي نص عربي باستخدام الذكاء الاصطناعي.'}
+        </p>
+      </div>
+
+      {/* Feature Card 2 */}
+      <div className="w-[320px] h-[250px] bg-white border border-black shadow-md rounded-[15px] p-6 text-center">
+        <div className="mb-4">
+          <img src="/icon2.png" alt="Icon 2" className="mx-auto w-12 h-12" />
+        </div>
+        <h3 className="text-xl font-semibold mb-2">
+          {language === 'en' ? 'Arabic Language Support' : 'دعم اللغة العربية'}
+        </h3>
+        <p className="text-gray-700">
+          {language === 'en'
+            ? 'Built specifically for Arabic grammar, structure, and flow.'
+            : 'مصمم خصيصًا ليتناسب مع قواعد وبنية اللغة العربية.'}
+        </p>
+      </div>
+
+      {/* Feature Card 3 */}
+      <div className="w-[320px] h-[250px] bg-white border border-black shadow-md rounded-[15px] p-6 text-center">
+        <div className="mb-4">
+          <img src="/icon3.png" alt="Icon 3" className="mx-auto w-12 h-12" />
+        </div>
+        <h3 className="text-xl font-semibold mb-2">
+          {language === 'en' ? 'Simple & Intuitive Interface' : 'واجهة بسيطة وسهلة الاستخدام'}
+        </h3>
+        <p className="text-gray-700">
+          {language === 'en'
+            ? 'Paste your Arabic text and generate questions in one click.'
+            : 'ألصق نصك العربي وولد الأسئلة بنقرة واحدة فقط.'}
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 
             <div className="bg-[#FFB3B3] h-250 mb-30">
   <img src="/Group 1.png" className="absolute mt-[-15px]" />
