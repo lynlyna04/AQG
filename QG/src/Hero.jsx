@@ -28,13 +28,24 @@ function Hero() {
             : 'حوّل أي نص عربي إلى أسئلة ممتعة تعزز فهم القراءة وتثير الفضول!'}
         </p>
 
-        <button
-          className="bg-[#FFB3B3] text-[22px] font-semibold border-2 border-black px-10 py-2 rounded-[15px] hover:bg-[#f3a8c7] w-1/2 flex justify-between items-center w-80 mb-15"
-          onClick={handleGetStartedClick}
-        >
-          {language === 'en' ? 'Get started for free' : 'ابدأ مجانًا'}
-          <img src="/Icon.png" alt="icon" className={`ml-2 ${language === 'ar' ? 'scale-x-[-1] ml-[-20px]' : ''}`} />
-        </button>
+        <div className="flex gap-4 mt-6 mb-15">
+  <button
+    className="bg-[#FFB3B3] text-[18px] font-semibold border-2  border-black px-12 py-2 rounded-[15px] hover:bg-[#f3a8c7] flex items-center"
+    onClick={handleGetStartedClick}
+  >
+    {language === 'en' ? 'Get started for free' : 'ابدأ مجانًا'}
+    <img src="/Icon.png" alt="icon" className={`ml-2 ${language === 'ar' ? 'scale-x-[-1] ml-[-20px]' : ''}`} />
+  </button>
+
+  <button
+    className="bg-[#FFEF9D] text-[18px] font-semibold border-2 border-black px-6 py-2 rounded-[15px] hover:bg-[#FFE768] flex items-center"
+    onClick={() => navigate('/generate-subject')}
+  >
+    {language === 'en' ? 'Generate Subject' : 'إنشاء الموضوع'}
+    <img src="/Icon.png" alt="icon" className={`ml-2 ${language === 'ar' ? 'scale-x-[-1] ml-[-20px]' : ''}`} />
+  </button>
+</div>
+
 
         <div className="flex gap-6 flex-wrap">
           <div className="bg-[#FFEF9D] rounded-[10px] p-4 shadow w-[270px] px-6">

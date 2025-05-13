@@ -40,12 +40,13 @@ function Header() {
   };
 
   const handleGetStartedClick = () => {
-    navigate('/Generate');
+    navigate('/generate');
   };
 
   return (
     <header>
-      <nav className="w-full h-20 flex items-center justify-between px-8 md:px-20 absolute">
+      <nav className="w-full h-20 flex items-center justify-between px-8 md:px-20 fixed top-0 left-0 z-50 bg-white ">
+
         <div className={`flex gap-4 items-center ${language === 'en' ? 'order-2' : 'order-1'}`}>
           {/* 🌐 Language dropdown */}
           <div className="relative" ref={langRef}>
@@ -131,12 +132,20 @@ function Header() {
               {language === 'en' ? 'Home' : 'الرئيسية'}
             </a>
             <a
-              href="/generate"
-              onClick={handleGetStartedClick}
-              className="px-4 py-2 rounded transition-all duration-300 hover:bg-[#FFEF9D] hover:text-black"
-            >
-              {language === 'en' ? 'Generate' : 'أنشئ'}
-            </a>
+  onClick={() => navigate('/generate')}
+  className="cursor-pointer px-4 py-2 rounded transition-all duration-300 hover:bg-[#FFEF9D] hover:text-black"
+>
+  {language === 'en' ? 'Generate Q' : 'أنشئ'}
+</a>
+<a
+  onClick={() => navigate('/generate-subject')}
+  className="cursor-pointer px-4 py-2 rounded transition-all duration-300 hover:bg-[#FFEF9D] hover:text-black"
+>
+  {language === 'en' ? 'Generate Subject' : 'أنشئ موضوع'}
+</a>
+
+
+
           </li>
         </ul>
 
