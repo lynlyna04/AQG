@@ -1,25 +1,22 @@
 import { useState } from "react";
 import Header from './Header.jsx';
 import Footer from './Footer.jsx';
-import { useLanguage } from './hooks/useLanguage'; // Import the hook
-import axios from "axios"; // Import axios for HTTP requests
-import * as pdfjsLib from "pdfjs-dist"; // Import PDF.js library
+import { useLanguage } from './hooks/useLanguage';
+import axios from "axios";
+import * as pdfjsLib from "pdfjs-dist";
 
 function Generate() {
-  const { language } = useLanguage(); // Get current language
+  const { language } = useLanguage();
 
-  // States to hold input text and output (generated questions)
   const [inputText, setInputText] = useState("");
   const [outputText, setOutputText] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Handle input text change
   const handleInputChange = (event) => {
     setInputText(event.target.value);
   };
 
-  // Handle the button click and generate questions
   const handleGenerateClick = async () => {
     setLoading(true);
     setError(null);
@@ -28,9 +25,7 @@ function Generate() {
       const response = await axios.post("http://localhost:5000/generate", {
         text: inputText,
       });
-
-      // Update outputText with the generated string from Flask
-      setOutputText(response.data.generated);
+      setOutputText(response.data.questions.join("\n"));
     } catch (error) {
       console.error(error);
       setError(language === 'ar' ? "حدث خطأ أثناء إنشاء الأسئلة." : "An error occurred while generating questions.");
@@ -39,27 +34,21 @@ function Generate() {
     }
   };
 
-
   const handleSaveFile = () => {
-    const fileType = 'text/plain'; // Can be set dynamically or prompted
-    const fileName = 'generated_results.txt'; // You can also allow the user to choose the file name
-  
-    // Convert output text to a Blob (for .txt file)
+    const fileType = 'text/plain';
+    const fileName = 'generated_results.txt';
     const blob = new Blob([outputText], { type: fileType });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = fileName; // Specify the filename
-    link.click(); // Trigger the download
+    link.download = fileName;
+    link.click();
   };
-  
-  // Handle PDF upload
+
   const handlePdfUpload = async (event) => {
     const file = event.target.files[0];
-  
+
     if (file) {
-      // Check file type before processing
       if (file.type === 'application/pdf') {
-        // Handle PDF file upload
         const reader = new FileReader();
         reader.onload = async (e) => {
           const pdfData = new Uint8Array(e.target.result);
@@ -71,17 +60,16 @@ function Generate() {
               const textContent = await page.getTextContent();
               pdfText += textContent.items.map(item => item.str).join(" ") + "\n";
             }
-            setInputText(pdfText); // Set the extracted text to inputText state
+            setInputText(pdfText);
           } catch (error) {
             console.error("Error extracting PDF text:", error);
           }
         };
         reader.readAsArrayBuffer(file);
       } else if (file.type === 'text/plain') {
-        // Handle .txt file upload
         const reader = new FileReader();
         reader.onload = (e) => {
-          setInputText(e.target.result); // Set text file content
+          setInputText(e.target.result);
         };
         reader.readAsText(file);
       } else {
@@ -114,26 +102,29 @@ function Generate() {
           </div>
         </div>
 
-        
-
         {/* Output Card */}
-        <div className="w-[350px] rounded-[10px] border border-black shadow-md overflow-hidden">
-          <div className="bg-[#FFB3B3] p-2 border-b border-black">
-            <h3 className="text-l font-bold text-black" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-              {language === 'ar' ? 'الأسئلة' : 'Questions'}
-            </h3>
-          </div>
-          <div className="bg-white p-4">
-            <p className="text-gray-800 leading-6" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-              {loading
-                ? language === 'ar'
-                  ? 'جارٍ إنشاء الأسئلة...'
-                  : 'Generating questions...'
-                : outputText}
-            </p>
-            {error && <p className="text-red-500">{error}</p>}
-          </div>
-        </div>
+        <div className="w-[350px] h-50 rounded-[10px] border border-black shadow-md overflow-hidden">
+  <div className="bg-[#FFB3B3] p-2 border-b border-black">
+    <h3 className="text-l font-bold text-black" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+      {language === 'ar' ? 'الأسئلة' : 'Questions'}
+    </h3>
+  </div>
+  <div className="bg-white px-6 py-4 h-[150px] overflow-y-auto">
+    {loading ? (
+      <p className="text-gray-800 leading-6" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+        {language === 'ar' ? 'جارٍ إنشاء الأسئلة...' : 'Generating questions...'}
+      </p>
+    ) : (
+      <ol className="text-gray-800 leading-6 list-decimal pl-5" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+        {outputText.split("\n").map((question, index) => (
+          <li key={index}>{question}</li>
+        ))}
+      </ol>
+    )}
+    {error && <p className="text-red-500">{error}</p>}
+  </div>
+</div>
+
       </div>
 
       {/* Generate Button */}
@@ -151,38 +142,36 @@ function Generate() {
         </div>
       </button>
 
-      <div className={`absolute  ${language === 'ar' ? 'ml-183 mt-[-44px]' : 'ml-108 mt-[-40px]'}`}>
-  {/* Hidden file input */}
-  <input
-    id="file-upload"
-    type="file"
-    accept=".pdf, .txt"
-    onChange={handlePdfUpload}
-    className="hidden"  // Hides the default file input
-  />
-
-  {/* Custom button */}
-  <label
-    htmlFor="file-upload"
-    className="bg-[#FFEF9D] text-[14px] font-semibold border-2 border-black py-[11px] px-3 rounded-[15px] hover:bg-[#FFE768] cursor-pointer"
-  >
-    {language === 'ar' ? 'تحميل ملف ' : 'Upload file'}  {/* Custom label */}
-  </label>
+      {/* Upload File Button */}
+      <div className={`absolute ${language === 'ar' ? 'ml-183 mt-[-44px]' : 'ml-108 mt-[-40px]'}`}>
+        <input
+          id="file-upload"
+          type="file"
+          accept=".pdf, .txt"
+          onChange={handlePdfUpload}
+          className="hidden"
+        />
+        <label
+          htmlFor="file-upload"
+          className="bg-[#FFEF9D] text-[14px] font-semibold border-2 border-black py-[11px] px-3 rounded-[15px] hover:bg-[#FFE768] cursor-pointer"
+        >
+          {language === 'ar' ? 'تحميل ملف ' : 'Upload file'}
+        </label>
       </div>
-      
-      {/* Save Results Button */}
-<button
-  onClick={handleSaveFile}
-  className={`bg-[#FFEF9D] text-[14px] ${language === 'ar' ? 'ml-[-480px]' : 'ml-62'} font-semibold border-2 border-black px-6 py-2 rounded-[15px] hover:bg-[#FFE768]`}
->
-  {language === 'ar' ? 'حفظ النتيجة' : 'Save Result'}
-</button>
 
+      {/* Save Results Button */}
+      <button
+        onClick={handleSaveFile}
+        className={`bg-[#FFEF9D] text-[14px] ${language === 'ar' ? 'ml-[-480px]' : 'ml-62'} font-semibold border-2 border-black px-6 py-2 rounded-[15px] hover:bg-[#FFE768]`}
+      >
+        {language === 'ar' ? 'حفظ النتيجة' : 'Save Result'}
+      </button>
 
       {/* Image */}
       <img src="./ni9er.png" className="w-[190px] mt-[-150px] ml-10" />
+
       <Footer />
-      </>
+    </>
   );
 }
 

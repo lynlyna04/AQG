@@ -1,9 +1,24 @@
 import Header from "./Header.jsx";
 import { useLanguage } from "./hooks/useLanguage";
+import { useState, useEffect } from "react";
+
 
 function Subjectopt() {
+
+  const [i3rabCount, setI3rabCount] = useState(0);
+
   const { language } = useLanguage();
-  const isArabic = language === "ar";
+    const isArabic = language === "ar";
+    
+    const [previewText, setPreviewText] = useState("");
+
+useEffect(() => {
+  const savedText = localStorage.getItem("subjectText");
+  if (savedText) {
+    setPreviewText(savedText);
+  }
+}, []);
+
 
   return (
     <>
@@ -32,57 +47,103 @@ function Subjectopt() {
               </h3>
 
               {/* Question 1 */}
-              <div className="flex items-center mb-6">
-                <p className="text-gray-800 w-28">
-                  {isArabic ? "السؤال 1:" : "Question 1:"}
-                </p>
-                <select className="border border-gray-400 rounded px-4 py-1">
-                  <option value="mcq">{isArabic ? "اختيار من متعدد" : "Multiple Choice"}</option>
-                  <option value="truefalse">{isArabic ? "صح / خطأ" : "True / False"}</option>
-                  <option value="open">{isArabic ? "سؤال مفتوح" : "Open-ended"}</option>
-                </select>
-              </div>
+              {/* Number of Comprehension Questions */}
+<div className="flex items-center mb-6">
+  <p className="text-gray-800 w-50">
+    {isArabic ? "أسئلة الفهم :" : "Comprehension questions:"}
+  </p>
+  <select className="border border-gray-400 rounded px-2 py-1">
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+  </select>
+</div>
 
-              {/* Question 2 */}
-              <div className="flex items-center mb-6">
-                <p className="text-gray-800 w-28">
-                  {isArabic ? "السؤال 2:" : "Question 2:"}
-                </p>
-                <select className="border border-gray-400 rounded px-4 py-1">
-                  <option value="mcq">{isArabic ? "اختيار من متعدد" : "Multiple Choice"}</option>
-                  <option value="truefalse">{isArabic ? "صح / خطأ" : "True / False"}</option>
-                  <option value="open">{isArabic ? "سؤال مفتوح" : "Open-ended"}</option>
-                </select>
-              </div>
+{/* Number of Synonyms */}
+<div className="flex items-center mb-6">
+  <p className="text-gray-800 w-50">
+    {isArabic ? "عدد المرادفات :" : "Number of synonyms:"}
+  </p>
+  <select className="border border-gray-400 rounded px-2 py-1">
+    <option value="0">0</option>
+    <option value="1">1</option>
+    <option value="2">2</option>
+  </select>
+</div>
+
+{/* Number of Antonyms */}
+<div className="flex items-center mb-6">
+  <p className="text-gray-800 w-50">
+    {isArabic ? "عدد الأضداد :" : "Number of antonyms:"}
+  </p>
+  <select className="border border-gray-400 rounded px-2 py-1">
+    <option value="0">0</option>
+    <option value="1">1</option>
+    <option value="2">2</option>
+  </select>
+</div>
+
 
               <h3 className="text-lg font-bold text-gray-900 mb-4">
                 {isArabic ? "القواعد" : "Grammar"}
               </h3>
 
-              {/* Question 3 */}
-              <div className="flex items-center mb-6">
-                <p className="text-gray-800 w-28">
-                  {isArabic ? "السؤال 3:" : "Question 3:"}
-                </p>
-                <select className="border border-gray-400 rounded px-4 py-1">
-                  <option value="mcq">{isArabic ? "اختيار من متعدد" : "Multiple Choice"}</option>
-                  <option value="truefalse">{isArabic ? "صح / خطأ" : "True / False"}</option>
-                  <option value="open">{isArabic ? "سؤال مفتوح" : "Open-ended"}</option>
-                </select>
-              </div>
+              {/* iʿrāb Question */}
+<div className="flex items-center mb-6">
+  <p className="text-gray-800 w-60">
+    {isArabic ? "كم عدد الكلمات المطلوبة للإعراب؟" : "How many words for iʿrāb (parsing)?"}
+  </p>
+  <select
+  className="border border-gray-400 rounded px-2 py-1"
+  value={i3rabCount}
+  onChange={(e) => setI3rabCount(parseInt(e.target.value))}
+>
+  <option value="0">0</option>
+  <option value="1">1</option>
+  <option value="2">2</option>
+  <option value="3">3</option>
+</select>
 
-              {/* Question 4 */}
-              <div className="flex items-start mb-6">
-                <p className="text-gray-800 w-28 mt-2">
-                  {isArabic ? "السؤال 4:" : "Question 4:"}
-                </p>
-                <textarea
-                  className="border border-gray-400 rounded px-4 py-2 w-[300px] h-[80px]"
-                  placeholder={
-                    isArabic ? "اكتب سؤالك المخصص هنا..." : "Type your custom question here..."
-                  }
-                ></textarea>
-              </div>
+</div>
+
+{/* Tense Identification */}
+<div className="flex items-center mb-6">
+  <p className="text-gray-800 w-60">
+    {isArabic ? "كم عدد الأفعال لتحديد الزمن؟" : "How many verbs to identify the tense?"}
+  </p>
+  <select className="border border-gray-400 rounded px-2 py-1">
+    <option value="0">0</option>
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+  </select>
+                          </div>
+                          
+                          <div className="flex items-center mb-6">
+  <p className="text-gray-800 w-60">
+    {isArabic ? "كم عدد الجمل لتحديد نوع الجملة؟" : "How many sentences to classify (nominal/verbal)?"}
+  </p>
+  <select className="border border-gray-400 rounded px-2 py-1">
+    <option value="0">0</option>
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+  </select>
+</div>
+
+<div className="flex items-center mb-6">
+  <p className="text-gray-800 w-60">
+    {isArabic ? "كم عدد الكلمات لتحديد نوع الكلمة؟" : "How many words to categorize (noun/verb/particle)?"}
+  </p>
+  <select className="border border-gray-400 rounded px-2 py-1">
+    <option value="0">0</option>
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+  </select>
+</div>
+
+
             </div>
           </div>
 
@@ -92,15 +153,39 @@ function Subjectopt() {
         </div>
 
         {/* Right Block (preview box) */}
-        <div className="w-[550px] h-100 rounded-[10px] border border-black shadow-md overflow-hidden">
+        <div className="w-[550px] h-auto rounded-[10px] border border-black shadow-md overflow-hidden">
           <div className="bg-[#FFB3B3] p-2 border-b border-black">
             <h3 className="text-l font-bold text-black text-center">
               {isArabic ? "معاينة الموضوع" : "Subject Preview"}
             </h3>
           </div>
-          <div className="bg-white p-4 h-[150px]">
-            {/* Empty content for now */}
-          </div>
+                  <div className="bg-white p-4 h-auto overflow-y-auto whitespace-pre-wrap text-gray-800 text-[15px] leading-6">
+                      <h3 className="font-bold text-lg mb-4">{isArabic ? " النص" : "text"}</h3>
+                      {previewText || (isArabic ? "لا يوجد محتوى للعرض." : "No content to preview.")}
+                      {isArabic ? <h3 className="font-bold text-lg mt-6 mb-2">البناء اللغوي :</h3> : <h3 className="font-bold text-lg mt-6 mb-2">Grammar :</h3>}
+                      {isArabic ? <h3 className="font-semi-bold text-lg mt-6 mb-2">1- اعرب الكلمات التالية :</h3> : <h3 className="font-bold text-lg mt-6 mb-2">I'rab</h3>}
+
+{i3rabCount > 0 && (
+  <table className="w-full border border-gray-300 text-sm">
+    <thead>
+      <tr className="bg-gray-100 text-left">
+        <th className="border px-2 py-1">{isArabic ? "الكلمة" : "Word"}</th>
+        <th className="border px-2 py-1">{isArabic ? "الإعراب" : "I'rab"}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {Array.from({ length: i3rabCount }).map((_, index) => (
+        <tr key={index}>
+          <td className="border px-2 py-1">{isArabic ? `كلمة ${index + 1}` : `Word ${index + 1}`}</td>
+          <td className="border px-2 py-1">{isArabic ? "..." : "..."}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+)}
+
+</div>
+
         </div>
       </div>
     </>

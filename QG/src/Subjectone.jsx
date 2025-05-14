@@ -11,7 +11,13 @@ function Subjectone() {
 
   const handleInputChange = (event) => {
     setInputText(event.target.value);
-  };
+    };
+    
+    const handleNext = () => {
+        localStorage.setItem('subjectText', inputText);
+        navigate('/generate-subjectopt');
+      };
+      
 
   const handlePdfUpload = async (event) => {
     const file = event.target.files[0];
@@ -92,7 +98,7 @@ function Subjectone() {
                   </div>
                   
                   <button
-            onClick={() => navigate('/generate-subjectopt')}
+            onClick={handleNext}
             className="bg-[#FFEF9D] cursor-pointer text-[14px] font-semibold border-2 border-black px-6 py-2 rounded-[15px] hover:bg-[#FFE768]"
           >
             {language === 'ar' ? 'التالي' : 'Next'}
