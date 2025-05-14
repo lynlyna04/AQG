@@ -10,6 +10,18 @@ function Subjectopt() {
 
     const [qCount, setQCount] = useState(0);
 
+    const [userInputWords, setUserInputWords] = useState("");
+const [parsedWords, setParsedWords] = useState([]);
+
+function handleParseWords() {
+  const words = userInputWords
+    .split(",")
+    .map(word => word.trim())
+    .filter(Boolean);
+  setParsedWords(words);
+}
+
+
   const { language } = useLanguage();
     const isArabic = language === "ar";
     
@@ -33,7 +45,6 @@ useEffect(() => {
   
     
 function getRandomWords(text, count) {
-    // Remove punctuation and split text into words
     const words = text
       .replace(/[.,/#!$%^&*;:{}=\-_`~()[\]؟،«»]/g, "") // remove Arabic & English punctuation
       .split(/\s+/)
@@ -172,7 +183,22 @@ function getRandomWords(text, count) {
     <option value="2">2</option>
     <option value="3">3</option>
   </select>
-</div>
+                          </div>
+                          <div className="flex items-center gap-2 mb-2">
+    <textarea
+      className="flex-grow border border-gray-300 p-2 rounded text-sm"
+      rows="2"
+      placeholder={isArabic ? "أدخل الكلمات مفصولة بفواصل" : "Enter words separated by commas"}
+      value={userInputWords}
+      onChange={(e) => setUserInputWords(e.target.value)}
+    />
+    <button
+      onClick={handleParseWords}
+      className="bg-[#FFB3B3] text-black font-semibold px-3 py-1 rounded shadow hover:bg-[#ffa1a1] transition text-sm"
+    >
+      {isArabic ? "تحليل" : "Go"}
+    </button>
+  </div>
 
 
             </div>
@@ -202,8 +228,8 @@ function getRandomWords(text, count) {
                       {i3rabWords.length > 0 && (
   <table className="w-full border border-gray-300 text-sm mt-2">
     <thead>
-      <tr className="bg-gray-100 text-left">
-        <th className="border px-2 py-1 text-right">{isArabic ? "الكلمة" : "Word"}</th>
+      <tr className="bg-gray-100">
+        <th className="border w-20 px-2 py-1 text-right">{isArabic ? "الكلمة" : "Word"}</th>
         <th className="border px-2 py-1 text-right">{isArabic ? "الإعراب" : "I'rab"}</th>
       </tr>
     </thead>
@@ -218,6 +244,32 @@ function getRandomWords(text, count) {
   </table>
 )}
 
+                      
+
+
+{isArabic ? <h3 className="font-semi-bold text-lg mt-6 mb-2">2- اكمل الجدول التالي :</h3> : <h3 className="font-bold text-lg mt-6 mb-2">I'rab</h3>}
+    {parsedWords.length > 0 && (
+    <table className="w-full border border-gray-300 text-sm mt-2">
+      <thead>
+        <tr className="bg-gray-100">
+          <th className="border px-2 py-1 text-right">{isArabic ? "الكلمة" : "Word"}</th>
+          <th className="border px-2 py-1 text-right">{isArabic ? "النوع" : "Type"}</th>
+          <th className="border px-2 py-1 text-right">{isArabic ? "الوظيفة" : "Function"}</th>
+          <th className="border px-2 py-1 text-right">{isArabic ? "الملاحظات" : "Notes"}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {parsedWords.map((word, index) => (
+          <tr key={index}>
+            <td className="border px-2 py-1">{word}</td>
+            <td className="border px-2 py-1">{isArabic ? "..." : "..."}</td>
+            <td className="border px-2 py-1">{isArabic ? "..." : "..."}</td>
+            <td className="border px-2 py-1">{isArabic ? "..." : "..."}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )}      
 
                   </div>
 
