@@ -79,6 +79,40 @@ def generate_questions():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+
+@app.route('/generate-subjectopt', methods=['POST'])
+def generate_subject_options():
+    try:
+        data = request.get_json()
+        input_text = data.get("text", "")
+        paragraphs = segment_by_points_grouped(input_text)
+
+        if not paragraphs:
+            return jsonify({"error": "No valid paragraphs found."}), 400
+
+        generated = []
+        for paragraph in paragraphs:
+            inputs = tokenizer(paragraph, return_tensors="pt", truncation=True)
+            outputs = model.generate(
+                inputs["input_ids"],
+                max_length=100,
+                num_beams=4,
+                early_stopping=True
+            )
+
+            decoded = tokenizer.decode(outputs[0], skip_special_tokens=True)
+            generated.append(decoded)
+
+        return jsonify({
+            "subject_options": generated,
+            "count": len(generated),
+            "original_text": input_text
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True)

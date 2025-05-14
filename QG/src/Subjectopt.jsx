@@ -5,7 +5,10 @@ import { useState, useEffect } from "react";
 
 function Subjectopt() {
 
-  const [i3rabCount, setI3rabCount] = useState(0);
+    const [i3rabCount, setI3rabCount] = useState(0);
+    const [i3rabWords, setI3rabWords] = useState([]);
+
+    const [qCount, setQCount] = useState(0);
 
   const { language } = useLanguage();
     const isArabic = language === "ar";
@@ -18,6 +21,32 @@ useEffect(() => {
     setPreviewText(savedText);
   }
 }, []);
+      
+useEffect(() => {
+    if (i3rabCount > 0 && previewText) {
+      const selectedWords = getRandomWords(previewText, i3rabCount);
+      setI3rabWords(selectedWords);
+    } else {
+      setI3rabWords([]);
+    }
+  }, [i3rabCount, previewText]);
+  
+    
+function getRandomWords(text, count) {
+    // Remove punctuation and split text into words
+    const words = text
+      .replace(/[.,/#!$%^&*;:{}=\-_`~()[\]؟،«»]/g, "") // remove Arabic & English punctuation
+      .split(/\s+/)
+      .filter(Boolean); // remove empty strings
+  
+    // Shuffle the words randomly
+    const shuffled = [...words].sort(() => 0.5 - Math.random());
+  
+    // Return the first `count` words
+    return shuffled.slice(0, count);
+  }
+  
+    
 
 
   return (
@@ -52,7 +81,9 @@ useEffect(() => {
   <p className="text-gray-800 w-50">
     {isArabic ? "أسئلة الفهم :" : "Comprehension questions:"}
   </p>
-  <select className="border border-gray-400 rounded px-2 py-1">
+                              <select className="border border-gray-400 rounded px-2 py-1"
+                              value={qCount}
+                              onChange={(e) => setQCount(parseInt(e.target.value))}>
     <option value="1">1</option>
     <option value="2">2</option>
     <option value="3">3</option>
@@ -162,21 +193,24 @@ useEffect(() => {
                   <div className="bg-white p-4 h-auto overflow-y-auto whitespace-pre-wrap text-gray-800 text-[15px] leading-6">
                       <h3 className="font-bold text-lg mb-4">{isArabic ? " النص" : "text"}</h3>
                       {previewText || (isArabic ? "لا يوجد محتوى للعرض." : "No content to preview.")}
+                      {isArabic ? <h3 className="font-bold text-lg mt-6 mb-2">البناء الفكري:</h3> : <h3 className="font-bold text-lg mt-6 mb-2">Reading comprehension :</h3>}
+                      {isArabic ? <h3 className="font-semi-bold text-lg mt-6 mb-1">1- اعط عنوان للنص .</h3> : <h3 className="font-bold text-lg mt-6 mb-1">I'rab</h3>}
+                      {isArabic ? <h3 className="font-semi-bold text-lg mt-6 mb-1">2- .</h3> : <h3 className="font-bold text-lg mt-6 mb-1">I'rab</h3>}
                       {isArabic ? <h3 className="font-bold text-lg mt-6 mb-2">البناء اللغوي :</h3> : <h3 className="font-bold text-lg mt-6 mb-2">Grammar :</h3>}
                       {isArabic ? <h3 className="font-semi-bold text-lg mt-6 mb-2">1- اعرب الكلمات التالية :</h3> : <h3 className="font-bold text-lg mt-6 mb-2">I'rab</h3>}
 
-{i3rabCount > 0 && (
-  <table className="w-full border border-gray-300 text-sm">
+                      {i3rabWords.length > 0 && (
+  <table className="w-full border border-gray-300 text-sm mt-2">
     <thead>
       <tr className="bg-gray-100 text-left">
-        <th className="border px-2 py-1">{isArabic ? "الكلمة" : "Word"}</th>
-        <th className="border px-2 py-1">{isArabic ? "الإعراب" : "I'rab"}</th>
+        <th className="border px-2 py-1 text-right">{isArabic ? "الكلمة" : "Word"}</th>
+        <th className="border px-2 py-1 text-right">{isArabic ? "الإعراب" : "I'rab"}</th>
       </tr>
     </thead>
     <tbody>
-      {Array.from({ length: i3rabCount }).map((_, index) => (
+      {i3rabWords.map((word, index) => (
         <tr key={index}>
-          <td className="border px-2 py-1">{isArabic ? `كلمة ${index + 1}` : `Word ${index + 1}`}</td>
+          <td className="border px-2 py-1">{word}</td>
           <td className="border px-2 py-1">{isArabic ? "..." : "..."}</td>
         </tr>
       ))}
@@ -184,7 +218,8 @@ useEffect(() => {
   </table>
 )}
 
-</div>
+
+                  </div>
 
         </div>
       </div>
