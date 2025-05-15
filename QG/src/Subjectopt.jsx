@@ -62,29 +62,25 @@ function getRandomWords(text, count) {
   const [subjectOptions, setSubjectOptions] = useState([]);
 
     
-  async function handleGenerate() {
-    try {
-      const response = await fetch("http://localhost:5000/generate-subjectopt", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ text: previewText }),
-      });
   
-      const data = await response.json();
   
-      if (response.ok) {
-        setSubjectOptions(data.subject_options);
-      } else {
-        console.error("Error:", data.error);
-      }
-    } catch (error) {
-      console.error("Failed to generate:", error);
+  const [totalQuestions, setTotalQuestions] = useState(3); // default fallback
+
+  useEffect(() => {
+    const storedOptions = localStorage.getItem('subjectQuestions'); // ✅ correct key
+    const storedCount = localStorage.getItem('questionCount');
+  
+    if (storedOptions) {
+      setSubjectOptions(JSON.parse(storedOptions));
     }
-  }
   
-    
+    if (storedCount) {
+      setTotalQuestions(parseInt(storedCount));
+      setQCount(1);
+    }
+  }, []);
+  
+  
 
 
   return (
@@ -115,18 +111,22 @@ function getRandomWords(text, count) {
 
               {/* Question 1 */}
               {/* Number of Comprehension Questions */}
-<div className="flex items-center mb-6">
-  <p className="text-gray-800 w-50">
-    {isArabic ? "أسئلة الفهم :" : "Comprehension questions:"}
-  </p>
-                              <select className="border border-gray-400 rounded px-2 py-1"
-                              value={qCount}
-                              onChange={(e) => setQCount(parseInt(e.target.value))}>
-    <option value="1">1</option>
-    <option value="2">2</option>
-    <option value="3">3</option>
-  </select>
-</div>
+              <div className="flex items-center mb-6">
+      <p className="text-gray-800 w-50">
+        {isArabic ? "أسئلة الفهم :" : "Comprehension questions:"}
+      </p>
+      <select
+        className="border border-gray-400 rounded px-2 py-1 ml-2"
+        value={qCount}
+        onChange={(e) => setQCount(parseInt(e.target.value))}
+      >
+        {Array.from({ length: totalQuestions }, (_, i) => (
+          <option key={i + 1} value={i + 1}>
+            {i + 1}
+          </option>
+        ))}
+      </select>
+    </div>
 
 {/* Number of Synonyms */}
 <div className="flex items-center mb-6">
@@ -233,7 +233,6 @@ function getRandomWords(text, count) {
 
           <button
   className="mt-4 bg-[#FFB3B3] text-black font-semibold px-6 py-2 rounded shadow hover:bg-[#ffa1a1] transition"
-  onClick={handleGenerate}
 >
   {isArabic ? "إنشاء" : "Generate"}
 </button>
@@ -252,29 +251,32 @@ function getRandomWords(text, count) {
                       {previewText || (isArabic ? "لا يوجد محتوى للعرض." : "No content to preview.")}
                       {isArabic ? <h3 className="font-bold text-lg mt-6 mb-2">البناء الفكري:</h3> : <h3 className="font-bold text-lg mt-6 mb-2">Reading comprehension :</h3>}
                       {isArabic ? (
-  <>
-                              <h3 className="font-semi-bold text-lg mt-6 mb-1">1- اعط عنوان للنص .</h3>
-                              <h3 className="font-semi-bold text-lg  mb-1">2- اجب على الاسئلة التالية :</h3>
-    <ul className="list-disc ml-6 text-lg text-gray-700 px-4">
-        {subjectOptions.slice(0, qCount).map((opt, index) => (
-          <>
-          <li key={index}>{opt}</li>
-          <li className="list-none">.....................................................</li>
-          </>
-          
-      ))}
-    </ul>
-  </>
-) : (
-  <>
-    <h3 className="font-bold text-lg mt-6 mb-1">1- Give a title to the text:</h3>
-    <ul className="list-disc ml-6 text-sm text-gray-700">
-      {subjectOptions.slice(0, qCount).map((opt, index) => (
-        <li key={index}>{opt}</li>
-      ))}
-    </ul>
-  </>
-)}
+        <>
+          <h3 className="font-semibold text-lg mt-6 mb-1">1- اعط عنوان للنص .</h3>
+          <h3 className="font-semibold text-lg mt-1 mb-2">2- اجب على الاسئلة التالية :</h3>
+          <ul className="list-disc ml-6 text-lg text-gray-700 px-4">
+            {subjectOptions.slice(0, qCount).map((opt, index) => (
+              <li key={index}>
+                {opt}
+                <div className="mt-1 mb-4">.....................................................</div>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <>
+          <h3 className="font-bold text-lg mt-6 mb-1">1- Give a title to the text:</h3>
+          <h3 className="font-bold text-lg mt-1 mb-2">2- Answer the following questions:</h3>
+          <ul className="list-disc ml-6 text-sm text-gray-700">
+            {subjectOptions.slice(0, qCount).map((opt, index) => (
+              <li key={index}>
+                {opt}
+                <div className="mt-1 mb-4">.....................................................</div>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
 
 
                       {isArabic ? <h3 className="font-bold text-lg mt-6 mb-2">البناء اللغوي :</h3> : <h3 className="font-bold text-lg mt-6 mb-2">Grammar :</h3>}

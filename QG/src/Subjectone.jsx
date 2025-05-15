@@ -13,11 +13,6 @@ function Subjectone() {
     setInputText(event.target.value);
     };
     
-    const handleNext = () => {
-        localStorage.setItem('subjectText', inputText);
-        navigate('/generate-subjectopt');
-      };
-      
 
   const handlePdfUpload = async (event) => {
     const file = event.target.files[0];
@@ -50,7 +45,34 @@ function Subjectone() {
         console.error("Invalid file type");
       }
     }
-  };
+    };
+    
+    const handleNext = async () => {
+        try {
+          const response = await fetch("http://localhost:5000/generate-subject", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ text: inputText }),
+          });
+      
+          const data = await response.json();
+            console.log(data);
+          if (response.ok) {
+            const subjectOptions = data.subject_options || [];
+            localStorage.setItem('subjectText', inputText);
+            localStorage.setItem('subjectQuestions', JSON.stringify(subjectOptions));
+            localStorage.setItem('questionCount', subjectOptions.length);
+            navigate('/generate-subjectopt');
+          } else {
+            console.error("Error:", data.error);
+          }
+        } catch (error) {
+          console.error("Failed to fetch subject options:", error);
+        }
+      };
+      
 
 
 

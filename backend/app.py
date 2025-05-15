@@ -81,7 +81,7 @@ def generate_questions():
         return jsonify({"error": str(e)}), 500
     
 
-@app.route('/generate-subjectopt', methods=['POST'])
+@app.route('/generate-subject', methods=['POST'])
 def generate_subject_options():
     try:
         data = request.get_json()
