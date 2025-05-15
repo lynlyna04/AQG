@@ -14,12 +14,13 @@ function Subjectopt() {
 const [parsedWords, setParsedWords] = useState([]);
 
 function handleParseWords() {
-  const words = userInputWords
-    .split(",")
-    .map(word => word.trim())
-    .filter(Boolean);
-  setParsedWords(words);
-}
+    const words = userInputWords
+      .split(/[,،]/) // Regex to split on either , or ،
+      .map(word => word.trim())
+      .filter(Boolean);
+    setParsedWords(words);
+  }
+  
 
 
   const { language } = useLanguage();
@@ -55,6 +56,32 @@ function getRandomWords(text, count) {
   
     // Return the first `count` words
     return shuffled.slice(0, count);
+  }
+  
+    
+  const [subjectOptions, setSubjectOptions] = useState([]);
+
+    
+  async function handleGenerate() {
+    try {
+      const response = await fetch("http://localhost:5000/generate-subjectopt", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text: previewText }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        setSubjectOptions(data.subject_options);
+      } else {
+        console.error("Error:", data.error);
+      }
+    } catch (error) {
+      console.error("Failed to generate:", error);
+    }
   }
   
     
@@ -204,9 +231,13 @@ function getRandomWords(text, count) {
             </div>
           </div>
 
-          <button className="mt-4 bg-[#FFB3B3] text-black font-semibold px-6 py-2 rounded shadow hover:bg-[#ffa1a1] transition">
-            {isArabic ? "إنشاء" : "Generate"}
-          </button>
+          <button
+  className="mt-4 bg-[#FFB3B3] text-black font-semibold px-6 py-2 rounded shadow hover:bg-[#ffa1a1] transition"
+  onClick={handleGenerate}
+>
+  {isArabic ? "إنشاء" : "Generate"}
+</button>
+
         </div>
 
         {/* Right Block (preview box) */}
@@ -220,8 +251,32 @@ function getRandomWords(text, count) {
                       <h3 className="font-bold text-lg mb-4">{isArabic ? " النص" : "text"}</h3>
                       {previewText || (isArabic ? "لا يوجد محتوى للعرض." : "No content to preview.")}
                       {isArabic ? <h3 className="font-bold text-lg mt-6 mb-2">البناء الفكري:</h3> : <h3 className="font-bold text-lg mt-6 mb-2">Reading comprehension :</h3>}
-                      {isArabic ? <h3 className="font-semi-bold text-lg mt-6 mb-1">1- اعط عنوان للنص .</h3> : <h3 className="font-bold text-lg mt-6 mb-1">I'rab</h3>}
-                      {isArabic ? <h3 className="font-semi-bold text-lg mt-6 mb-1">2- .</h3> : <h3 className="font-bold text-lg mt-6 mb-1">I'rab</h3>}
+                      {isArabic ? (
+  <>
+                              <h3 className="font-semi-bold text-lg mt-6 mb-1">1- اعط عنوان للنص .</h3>
+                              <h3 className="font-semi-bold text-lg  mb-1">2- اجب على الاسئلة التالية :</h3>
+    <ul className="list-disc ml-6 text-lg text-gray-700 px-4">
+        {subjectOptions.slice(0, qCount).map((opt, index) => (
+          <>
+          <li key={index}>{opt}</li>
+          <li className="list-none">.....................................................</li>
+          </>
+          
+      ))}
+    </ul>
+  </>
+) : (
+  <>
+    <h3 className="font-bold text-lg mt-6 mb-1">1- Give a title to the text:</h3>
+    <ul className="list-disc ml-6 text-sm text-gray-700">
+      {subjectOptions.slice(0, qCount).map((opt, index) => (
+        <li key={index}>{opt}</li>
+      ))}
+    </ul>
+  </>
+)}
+
+
                       {isArabic ? <h3 className="font-bold text-lg mt-6 mb-2">البناء اللغوي :</h3> : <h3 className="font-bold text-lg mt-6 mb-2">Grammar :</h3>}
                       {isArabic ? <h3 className="font-semi-bold text-lg mt-6 mb-2">1- اعرب الكلمات التالية :</h3> : <h3 className="font-bold text-lg mt-6 mb-2">I'rab</h3>}
 
