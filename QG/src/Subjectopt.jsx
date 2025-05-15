@@ -14,6 +14,11 @@ function Subjectopt() {
   const [showPreview, setShowPreview] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
+  // Store temporary values that will be applied to preview only when generate is clicked
+  const [tempI3rabCount, setTempI3rabCount] = useState(0);
+  const [tempQCount, setTempQCount] = useState(0);
+  const [tempParsedWords, setTempParsedWords] = useState([]);
+  
   // Get language from context - this will be used only for the left panel
   const { language } = useLanguage();
   
@@ -25,7 +30,7 @@ function Subjectopt() {
       .split(/[,،]/) // Regex to split on either , or ،
       .map(word => word.trim())
       .filter(Boolean);
-    setParsedWords(words);
+    setTempParsedWords(words); // Store in temporary state
   }
 
   useEffect(() => {
@@ -35,14 +40,8 @@ function Subjectopt() {
     }
   }, []);
       
-  useEffect(() => {
-    if (i3rabCount > 0 && previewText) {
-      const selectedWords = getRandomWords(previewText, i3rabCount);
-      setI3rabWords(selectedWords);
-    } else {
-      setI3rabWords([]);
-    }
-  }, [i3rabCount, previewText]);
+  // Remove the useEffect that updates i3rabWords whenever i3rabCount changes
+  // since we only want this to happen on Generate click
   
   function getRandomWords(text, count) {
     const words = text
@@ -67,12 +66,25 @@ function Subjectopt() {
   
     if (storedCount) {
       setTotalQuestions(parseInt(storedCount));
-      setQCount(1);
+      setTempQCount(1); // Initial value for the UI dropdown
     }
   }, []);
   
   const handleGenerateClick = () => {
     setIsLoading(true);
+    
+    // Apply the temporary values to the actual preview state
+    setI3rabCount(tempI3rabCount);
+    setQCount(tempQCount);
+    setParsedWords(tempParsedWords);
+    
+    // Get new i3rab words based on the newly set i3rabCount
+    if (tempI3rabCount > 0 && previewText) {
+      const selectedWords = getRandomWords(previewText, tempI3rabCount);
+      setI3rabWords(selectedWords);
+    } else {
+      setI3rabWords([]);
+    }
     
     // Simulate loading with a timeout
     setTimeout(() => {
@@ -112,8 +124,8 @@ function Subjectopt() {
                 </p>
                 <select
                   className="border border-gray-400 rounded px-2 py-1 mr-2"
-                  value={qCount}
-                  onChange={(e) => setQCount(parseInt(e.target.value))}
+                  value={tempQCount}
+                  onChange={(e) => setTempQCount(parseInt(e.target.value))}
                 >
                   {Array.from({ length: totalQuestions }, (_, i) => (
                     <option key={i + 1} value={i + 1}>
@@ -158,8 +170,8 @@ function Subjectopt() {
                 </p>
                 <select
                   className="border border-gray-400 rounded px-2 py-1"
-                  value={i3rabCount}
-                  onChange={(e) => setI3rabCount(parseInt(e.target.value))}
+                  value={tempI3rabCount}
+                  onChange={(e) => setTempI3rabCount(parseInt(e.target.value))}
                 >
                   <option value="0">0</option>
                   <option value="1">1</option>
