@@ -8,6 +8,8 @@ function Subjectone() {
   const { language } = useLanguage();
     const [inputText, setInputText] = useState("");
     const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(false);
+    const isArabic = language === 'ar';
 
   const handleInputChange = (event) => {
     setInputText(event.target.value);
@@ -48,6 +50,7 @@ function Subjectone() {
     };
     
     const handleNext = async () => {
+        setIsLoading(true);
         try {
           const response = await fetch("http://localhost:5000/generate-subject", {
             method: "POST",
@@ -70,6 +73,7 @@ function Subjectone() {
           }
         } catch (error) {
           console.error("Failed to fetch subject options:", error);
+          setIsLoading(false);
         }
       };
       
@@ -121,9 +125,10 @@ function Subjectone() {
                   
                   <button
             onClick={handleNext}
-            className="bg-[#FFEF9D] cursor-pointer text-[14px] font-semibold border-2 border-black px-6 py-2 rounded-[15px] hover:bg-[#FFE768]"
+            disabled={isLoading || !inputText.trim()}
+            className={`bg-[#FFEF9D] text-[14px] font-semibold border-2 border-black px-6 py-2 rounded-[15px] ${isLoading || !inputText.trim() ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#FFE768] cursor-pointer'}`}
           >
-            {language === 'ar' ? 'التالي' : 'Next'}
+            {isLoading ? (isArabic ? 'جاري المعالجة...' : 'Processing...') : (isArabic ? 'التالي' : 'Next')}
           </button>
         </div>
 
