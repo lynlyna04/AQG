@@ -3,10 +3,10 @@ import { useLanguage } from "./hooks/useLanguage";
 import { useState, useEffect } from "react";
 
 function Subjectopt() {
-  const [i3rabCount, setI3rabCount] = useState(0);
   const [i3rabWords, setI3rabWords] = useState([]);
-    const [qCount, setQCount] = useState(0);
-    const [userInputWords, setUserInputWords] = useState('');
+  const [i3rabInput, setI3rabInput] = useState(""); // New state for i3rab input field
+  const [qCount, setQCount] = useState(0);
+  const [userInputWords, setUserInputWords] = useState('');
   const [synoWords, setUserSynoWords] = useState("");
   const [parsedWords, setParsedWords] = useState([]);
   const [previewText, setPreviewText] = useState("");
@@ -16,47 +16,129 @@ function Subjectopt() {
   const [isLoading, setIsLoading] = useState(false);
   
   // Store temporary values that will be applied to preview only when generate is clicked
-  const [tempI3rabCount, setTempI3rabCount] = useState(0);
   const [tempQCount, setTempQCount] = useState(0);
   
   // Get language from context - this will be used only for the left panel
-    const { language } = useLanguage();
-    const [antonymsInput, setAntonymsInput] = useState("");
-    const [parsedAntonyms, setParsedAntonyms] = useState([]);
-    const [parsedSyno, setParsedSyno] = useState([]);
+  const { language } = useLanguage();
+  const [antonymsInput, setAntonymsInput] = useState("");
+  const [parsedAntonyms, setParsedAntonyms] = useState([]);
+  const [parsedSyno, setParsedSyno] = useState([]);
+  const [transformType, setTransformType] = useState("مثنى"); // Default transformation type
+  const [transformInput, setTransformInput] = useState(""); 
+  
+  // New states for تعليل (grammatical reasoning)
+  const [taleelType, setTaleelType] = useState("همزة");
+  const [taleelWords, setTaleelWords] = useState("");
+  const [parsedTaleelWords, setParsedTaleelWords] = useState([]);
+  
+  // New states for verb conjugation (تصريف الأفعال)
+  const [verbInput, setVerbInput] = useState("");
+  const [parsedVerbs, setParsedVerbs] = useState([]);
+  const [pronounsInput, setPronounsInput] = useState("أنا, أنتَ, أنتِ, هو, هي, نحن, أنتم, أنتن, هم, هن");
+  const [parsedPronouns, setParsedPronouns] = useState([]);
+  const [verbTense, setVerbTense] = useState("الماضي");
   
   // For the preview block, always use Arabic settings regardless of useLanguage
   const previewIsArabic = true;
   
   const handleChange = (event) => {
     setUserInputWords(event.target.value);
-    handleParseWords();
   };
 
+  // Handler for i3rab input changes
+  const handleI3rabInputChange = (event) => {
+    setI3rabInput(event.target.value);
+  };
+  
   function handleParseWords() {
-      const words = userInputWords
+    const words = userInputWords
       .split(/[,،]/) // Regex to split on either , or ،
       .map(word => word.trim())
       .filter(Boolean);
-    setParsedWords(words); // Store in temporary state
-    }
+    setParsedWords(words);
+  }
     
-    function handleParseAntonyms() {
-        const words = antonymsInput
-          .split(/[,،]/)
-          .map(word => word.trim())
-          .filter(Boolean);
-        setParsedAntonyms(words);
-    }
+  function handleParseAntonyms() {
+    const words = antonymsInput
+      .split(/[,،]/)
+      .map(word => word.trim())
+      .filter(Boolean);
+    setParsedAntonyms(words);
+  }
     
-    function handleParseSyno() {
-        const words = synoWords
-          .split(/[,،]/)
-          .map(word => word.trim())
-          .filter(Boolean);
-        setParsedSyno(words);
-      }
-      
+  function handleParseSyno() {
+    const words = synoWords
+      .split(/[,،]/)
+      .map(word => word.trim())
+      .filter(Boolean);
+    setParsedSyno(words);
+  }
+  
+  // Function to parse and set i3rab words from the input
+  function handleParseI3rab() {
+    const words = i3rabInput
+      .split(/[,،]/)
+      .map(word => word.trim())
+      .filter(Boolean);
+    setI3rabWords(words);
+  }
+  
+  // Function to parse and set تعليل words from input
+  function handleParseTaleelWords() {
+    const words = taleelWords
+      .split(/[,،]/)
+      .map(word => word.trim())
+      .filter(Boolean);
+    setParsedTaleelWords(words);
+  }
+  
+  // Function to parse and set verbs from input
+  function handleParseVerbs() {
+    const verbs = verbInput
+      .split(/[,،]/)
+      .map(verb => verb.trim())
+      .filter(Boolean);
+    setParsedVerbs(verbs);
+  }
+  
+  // Function to parse and set pronouns from input
+  function handleParsePronouns() {
+    const pronouns = pronounsInput
+      .split(/[,،]/)
+      .map(pronoun => pronoun.trim())
+      .filter(Boolean);
+    setParsedPronouns(pronouns);
+  }
+    
+  const handleTransformTypeChange = (event) => {
+    setTransformType(event.target.value);
+  };
+    
+  const handleTransformInputChange = (event) => {
+    setTransformInput(event.target.value);
+  };
+  
+  // Handlers for تعليل (reasoning) input and type
+  const handleTaleelTypeChange = (event) => {
+    setTaleelType(event.target.value);
+  };
+  
+  const handleTaleelWordsChange = (event) => {
+    setTaleelWords(event.target.value);
+  };
+  
+  // Handlers for verb conjugation inputs
+  const handleVerbInputChange = (event) => {
+    setVerbInput(event.target.value);
+  };
+  
+  const handlePronounsInputChange = (event) => {
+    setPronounsInput(event.target.value);
+  };
+  
+  const handleVerbTenseChange = (event) => {
+    setVerbTense(event.target.value);
+  };
 
   useEffect(() => {
     const savedText = localStorage.getItem("subjectText");
@@ -65,22 +147,6 @@ function Subjectopt() {
     }
   }, []);
       
-  // Remove the useEffect that updates i3rabWords whenever i3rabCount changes
-  // since we only want this to happen on Generate click
-  
-  function getRandomWords(text, count) {
-    const words = text
-      .replace(/[.,/#!$%^&*;:{}=\-_`~()[\]؟،«»]/g, "") // remove Arabic & English punctuation
-      .split(/\s+/)
-      .filter(Boolean); // remove empty strings
-
-    // Shuffle the words randomly
-    const shuffled = [...words].sort(() => 0.5 - Math.random());
-    
-    // Return the first `count` words
-    return shuffled.slice(0, count);
-  }
-  
   useEffect(() => {
     const storedOptions = localStorage.getItem('subjectQuestions'); // ✅ correct key
     const storedCount = localStorage.getItem('questionCount');
@@ -99,17 +165,14 @@ function Subjectopt() {
     setIsLoading(true);
   
     // Apply the temporary values
-    setI3rabCount(tempI3rabCount);
     setQCount(tempQCount);
     handleParseSyno();
-    handleParseAntonyms(); // ✅ add this
-  
-    if (tempI3rabCount > 0 && previewText) {
-      const selectedWords = getRandomWords(previewText, tempI3rabCount);
-      setI3rabWords(selectedWords);
-    } else {
-      setI3rabWords([]);
-    }
+    handleParseAntonyms();
+    handleParseWords();
+    handleParseI3rab(); // Parse the i3rab words on generate click
+    handleParseTaleelWords(); // Parse تعليل words on generate click
+    handleParseVerbs(); // Parse verbs for conjugation
+    handleParsePronouns(); // Parse pronouns for conjugation table
   
     setTimeout(() => {
       setIsLoading(false);
@@ -162,21 +225,20 @@ function Subjectopt() {
 
               {/* Number of Synonyms */}
               <div className="flex items-center mb-6 gap-2">
-  <p className="text-gray-800 w-35">
-    {language === "ar" ? "أدخل المرادفات:" : "Give synonyms:"}
-  </p>
-  <input
-    type="text"
-    placeholder={language === "ar" ? "افصل بين الكلمات بفواصل" : "Enter synonyms separated by commas"}
-    className="flex-grow border border-gray-400 rounded px-2 py-1 text-sm"
-    value={synoWords}
-    onChange={(e) => setUserSynoWords(e.target.value)}
-  />
-</div>
+                <p className="text-gray-800 w-35">
+                  {language === "ar" ? "أدخل المرادفات:" : "Give synonyms:"}
+                </p>
+                <input
+                  type="text"
+                  placeholder={language === "ar" ? "افصل بين الكلمات بفواصل" : "Enter synonyms separated by commas"}
+                  className="flex-grow border border-gray-400 rounded px-2 py-1 text-sm"
+                  value={synoWords}
+                  onChange={(e) => setUserSynoWords(e.target.value)}
+                />
+              </div>
 
-
-               {/* Antonyms Input */}
-               <div className="flex items-center mb-6 gap-2">
+              {/* Antonyms Input */}
+              <div className="flex items-center mb-6 gap-2">
                 <p className="text-gray-800 w-35">
                   {language === "ar" ? "أدخل الأضداد:" : "Enter antonyms:"}
                 </p>
@@ -193,60 +255,87 @@ function Subjectopt() {
                 {language === "ar" ? "القواعد" : "Grammar"}
               </h3>
 
-              {/* iʿrāb Question */}
-              <div className="flex items-center mb-6">
-                <p className="text-gray-800 w-60">
-                  {language === "ar" ? "كم عدد الكلمات المطلوبة للإعراب؟" : "Words for i3rāb (parsing)?"}
+              {/* I3rab Input Field - New field for i3rab words */}
+              <div className="flex items-center gap-2 mb-6">
+                <p className="text-gray-800 w-35">
+                  {language === "ar" ? "أدخل كلمات الإعراب:" : "Enter i3rab words:"}
+                </p>
+                <input
+                  type="text"
+                  className="flex-grow border border-gray-400 rounded px-2 py-1 text-sm"
+                  placeholder={language === "ar" ? "افصل بين الكلمات بفواصل" : "Separate with commas"}
+                  value={i3rabInput}
+                  onChange={handleI3rabInputChange}
+                />
+              </div>
+              
+              {/* تعليل (Grammatical reasoning) section */}
+              <div className="flex items-center mb-6 gap-2">
+                <p className="text-gray-800 w-35">
+                  {language === "ar" ? "نوع التعليل:" : "Reasoning type:"}
                 </p>
                 <select
                   className="border border-gray-400 rounded px-2 py-1"
-                  value={tempI3rabCount}
-                  onChange={(e) => setTempI3rabCount(parseInt(e.target.value))}
+                  value={taleelType}
+                  onChange={handleTaleelTypeChange}
                 >
-                  <option value="0">0</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
+                  <option value="همزة">همزة</option>
+                  <option value="تاء مفتوحة">تاء مفتوحة</option>
+                  <option value="تاء مربوطة">تاء مربوطة</option>
+                  <option value="ألف لينة">ألف لينة</option>
                 </select>
+              </div>
+              
+              {/* تعليل words input */}
+              <div className="flex items-center mb-6 gap-2">
+                <p className="text-gray-800 w-35">
+                  {language === "ar" ? "أدخل كلمات التعليل:" : "Enter reasoning words:"}
+                </p>
+                <input
+                  type="text"
+                  className="flex-grow border border-gray-400 rounded px-2 py-1 text-sm"
+                  placeholder={language === "ar" ? "افصل بين الكلمات بفواصل" : "Separate with commas"}
+                  value={taleelWords}
+                  onChange={handleTaleelWordsChange}
+                />
+              </div>
+              
+              {/* Transformation selector */}
+              <div className="flex items-center mb-6 gap-2">
+                <p className="text-gray-800 w-35">
+                  {language === "ar" ? "نوع التحويل:" : "Transformation type:"}
+                </p>
+                <select
+                  className="border border-gray-400 rounded px-2 py-1"
+                  value={transformType}
+                  onChange={handleTransformTypeChange}
+                >
+                  <option value="مثنى">مثنى</option>
+                  <option value="جمع مذكر">جمع مذكر</option>
+                  <option value="جمع مؤنث">جمع مؤنث</option>
+                  <option value="مفرد">مفرد</option>
+                </select>
+              </div>    
+
+              {/* Transformation input field */}
+              <div className="flex items-center mb-6 gap-2">
+                <p className="text-gray-800 w-35">
+                  {language === "ar" ? "أدخل الكلمات للتحويل:" : "Enter words for transformation:"}
+                </p>
+                <input
+                  type="text"
+                  className="flex-grow border border-gray-400 rounded px-2 py-1 text-sm"
+                  placeholder={language === "ar" ? "افصل بين الكلمات بفواصل" : "Separate with commas"}
+                  value={transformInput}
+                  onChange={handleTransformInputChange}
+                />
               </div>
 
-              {/* Tense Identification */}
-              <div className="flex items-center mb-6">
-                <p className="text-gray-800 w-60">
-                  {language === "ar" ? "كم عدد الأفعال لتحديد الزمن؟" : "Verbs to identify the tense?"}
+              {/* Extract Words Input Field */}
+                <div className="flex items-center gap-2 mb-6">
+                <p className="text-gray-800 w-35">
+                  {language === "ar" ? "أدخل كلمات للاستخراج :" : "Enter extraction words:"}
                 </p>
-                <select className="border border-gray-400 rounded px-2 py-1">
-                  <option value="0">0</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                </select>
-              </div>
-                          
-              <div className="flex items-center mb-6">
-                <p className="text-gray-800 w-60">
-                  {language === "ar" ? "كم عدد الجمل لتحديد نوع الجملة؟" : "Sentences to classify (nominal/verbal)?"}
-                </p>
-                <select className="border border-gray-400 rounded px-2 py-1">
-                  <option value="0">0</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                </select>
-              </div>
-
-              <div className="flex items-center mb-6">
-                <p className="text-gray-800 w-60">
-                  {language === "ar" ? "كم عدد الكلمات لتحديد نوع الكلمة؟" : "Words to categorize (noun/verb/particle)?"}
-                </p>
-                <select className="border border-gray-400 rounded px-2 py-1">
-                  <option value="0">0</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                </select>
-              </div>
-              <div className="flex items-center gap-2 mb-2">
                 <textarea
                   className="flex-grow border border-gray-300 p-2 rounded text-sm"
                   rows="2"
@@ -254,12 +343,55 @@ function Subjectopt() {
                   value={userInputWords}
                   onChange={handleChange}
                 />
-                {/*<button
-                  onClick={handleParseWords}
-                  className="bg-[#FFB3B3] text-black font-semibold px-3 py-1 rounded shadow hover:bg-[#ffa1a1] transition text-sm"
+              </div>
+              
+              {/* Verb Conjugation Section */}
+              <h3 className="text-lg font-bold text-gray-900 mb-4">
+                {language === "ar" ? "تصريف الأفعال" : "Verb Conjugation"}
+              </h3>
+              
+              {/* Verb tense selector */}
+              <div className="flex items-center mb-6 gap-2">
+                <p className="text-gray-800 w-35">
+                  {language === "ar" ? "زمن الفعل:" : "Verb tense:"}
+                </p>
+                <select
+                  className="border border-gray-400 rounded px-2 py-1"
+                  value={verbTense}
+                  onChange={handleVerbTenseChange}
                 >
-                  تحليل
-                </button>*/}
+                  <option value="الماضي">الماضي</option>
+                  <option value="المضارع">المضارع</option>
+                  <option value="الأمر">الأمر</option>
+                </select>
+              </div>
+              
+              {/* Verbs input */}
+              <div className="flex items-center mb-6 gap-2">
+                <p className="text-gray-800 w-35">
+                  {language === "ar" ? "أدخل الأفعال:" : "Enter verbs:"}
+                </p>
+                <input
+                  type="text"
+                  className="flex-grow border border-gray-400 rounded px-2 py-1 text-sm"
+                  placeholder={language === "ar" ? "افصل بين الأفعال بفواصل" : "Separate with commas"}
+                  value={verbInput}
+                  onChange={handleVerbInputChange}
+                />
+              </div>
+              
+              {/* Pronouns input */}
+              <div className="flex items-center mb-6 gap-2">
+                <p className="text-gray-800 w-35">
+                  {language === "ar" ? "أدخل الضمائر:" : "Enter pronouns:"}
+                </p>
+                <textarea
+                  className="flex-grow border border-gray-300 p-2 rounded text-sm"
+                  rows="2"
+                  placeholder={language === "ar" ? "افصل بين الضمائر بفواصل" : "Enter pronouns separated by commas"}
+                  value={pronounsInput}
+                  onChange={handlePronounsInputChange}
+                />
               </div>
             </div>
           </div>
@@ -298,77 +430,128 @@ function Subjectopt() {
                 
                 <h3 className="font-bold text-lg mt-6 mb-2">البناء الفكري:</h3>
                 <ol className="list-decimal mr-6 text-lg text-gray-700 px-4 space-y-2">
-  <li>اعط عنوان للنص.</li>
-  <li>
-    اجب على الاسئلة التالية:
-    <ul className="list-disc mr-6 mt-1 pl-5">
-      {subjectOptions.slice(0, qCount).map((opt, index) => (
-        <li key={index}>{opt}</li>
-      ))}
-    </ul>
-  </li>
-  {parsedSyno.length > 0 && (
-    <li>
-      {language === "ar"
-        ? `أعط المرادفات للكلمات: ${parsedSyno.join("، ")}`
-        : `Give the synonyms of the words: ${parsedSyno.join(", ")}`}
-    </li>
-  )}
-  {parsedAntonyms.length > 0 && (
-    <li>
-      {language === "ar"
-        ? `أعط الأضداد للكلمات: ${parsedAntonyms.join("، ")}`
-        : `Give the antonyms of the words: ${parsedAntonyms.join(", ")}`}
-    </li>
-  )}
-</ol>
-
-
+                  <li>اعط عنوان للنص.</li>
+                  <li>
+                    اجب على الاسئلة التالية:
+                    <ul className="list-disc mr-6 mt-1 pl-5">
+                      {subjectOptions.slice(0, qCount).map((opt, index) => (
+                        <li key={index}>{opt}</li>
+                      ))}
+                    </ul>
+                  </li>
+                  {parsedSyno.length > 0 && (
+                    <li>
+                      {language === "ar"
+                        ? `أعط مرادفات الكلمات التالية و وظفها في جملة مفيدة: ${parsedSyno.join("، ")}`
+                        : `Give the synonyms of the words: ${parsedSyno.join(", ")}`}
+                    </li>
+                  )}
+                  {parsedAntonyms.length > 0 && (
+                    <li>
+                      {language === "ar"
+                        ? `أعط الأضداد الكلمات التالية و وظفها في جملة مفيد : ${parsedAntonyms.join("، ")}`
+                        : `Give the antonyms of the words: ${parsedAntonyms.join(", ")}`}
+                    </li>
+                  )}
+                </ol>
 
                 <h3 className="font-bold text-lg mt-6 mb-2">البناء اللغوي:</h3>
-                <h3 className="font-semi-bold text-lg mt-6 mb-2">1- اعرب الكلمات التالية:</h3>
-                {i3rabWords.length > 0 && (
-                  <table className="w-full border border-gray-300 text-sm mt-2">
-                    <thead>
-                      <tr className="bg-gray-100">
-                        <th className="border w-20 px-2 py-1 text-right">الكلمة</th>
-                        <th className="border px-2 py-1 text-right">الإعراب</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {i3rabWords.map((word, index) => (
-                        <tr key={index}>
-                          <td className="border px-2 py-1">{word}</td>
-                          <td className="border px-2 py-1">...</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-                
-                <h3 className="font-semi-bold text-lg mt-6 mb-2">2- اكمل الجدول التالي:</h3>
-                {parsedWords.length > 0 && (
-                  <table className="w-full border border-gray-300 text-sm mt-2">
-                    <thead>
-                      <tr className="bg-gray-100">
-                        <th className="border px-2 py-1 text-right">الكلمة</th>
-                        <th className="border px-2 py-1 text-right">النوع</th>
-                        <th className="border px-2 py-1 text-right">الوظيفة</th>
-                        <th className="border px-2 py-1 text-right">الملاحظات</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {parsedWords.map((word, index) => (
-                        <tr key={index}>
-                          <td className="border px-2 py-1">{word}</td>
-                          <td className="border px-2 py-1">...</td>
-                          <td className="border px-2 py-1">...</td>
-                          <td className="border px-2 py-1">...</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
+
+<ol className="list-decimal mr-6 space-y-6">
+
+  {i3rabWords.length > 0 && (
+    <li>
+      <h3 className="font-semibold text-lg mb-2">اعرب الكلمات التالية:</h3>
+      <table className="w-full border border-gray-300 text-sm mt-2">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="border w-20 px-2 py-1 text-right">الكلمة</th>
+            <th className="border px-2 py-1 text-right">الإعراب</th>
+          </tr>
+        </thead>
+        <tbody>
+          {i3rabWords.map((word, index) => (
+            <tr key={index}>
+              <td className="border px-2 py-1">{word}</td>
+              <td className="border px-2 py-1">...</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </li>
+  )}
+
+  {parsedTaleelWords.length > 0 && (
+    <li>
+      <h3 className="font-semibold text-lg mb-2">علل سبب كتابة {taleelType} في:</h3>
+      <ul className="list-disc mr-6 mt-1 pl-5">
+        {parsedTaleelWords.map((word, index) => (
+          <li key={index}>{word}</li>
+        ))}
+      </ul>
+    </li>
+  )}
+
+  {parsedWords.length > 0 && (
+    <li>
+      <h3 className="font-semibold text-lg mb-2">استخرج من النص:</h3>
+      <table className="w-full border border-gray-300 text-sm mt-2 mb-4">
+        <thead>
+          <tr className="bg-gray-100">
+            {parsedWords.map((word, index) => (
+              <th className="border px-2 py-1 text-right" key={index}>{word}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            {parsedWords.map((_, index) => (
+              <td className="border px-2 py-1" key={index}>...</td>
+            ))}
+          </tr>
+        </tbody>
+      </table>
+    </li>
+  )}
+
+  {transformInput && transformInput.trim() !== "" && (
+    <li>
+      <h3 className="font-semibold text-lg mb-2">
+        حول {transformInput.split(/[,،]/).map(word => word.trim()).join("، ")} إلى {transformType}.
+      </h3>
+    </li>
+  )}
+
+  {parsedVerbs.length > 0 && parsedPronouns.length > 0 && (
+    <li>
+      <h3 className="font-semibold text-lg mb-2">
+        صرف الآتي في {verbTense}:
+      </h3>
+      <table className="w-full border border-gray-300 text-sm mt-2">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="border px-2 py-1 text-right">الضمائر</th>
+            {parsedVerbs.map((verb, index) => (
+              <th className="border px-2 py-1 text-right" key={index}>{verb}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {parsedPronouns.map((pronoun, index) => (
+            <tr key={index}>
+              <td className="border px-2 py-1">{pronoun}</td>
+              {parsedVerbs.map((_, verbIndex) => (
+                <td className="border px-2 py-1" key={verbIndex}>...</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </li>
+  )}
+
+</ol>
+
               </div>
             )}
           </div>
