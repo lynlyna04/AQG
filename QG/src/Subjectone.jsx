@@ -113,11 +113,13 @@ function Subjectone() {
               type="file"
               accept=".pdf, .txt"
               onChange={handlePdfUpload}
+              disabled={isLoading}
               className="hidden"
             />
             <label
               htmlFor="file-upload"
-              className="bg-[#FFEF9D] text-[14px] font-semibold border-2 border-black py-[11px] px-4 rounded-[15px] hover:bg-[#FFE768] cursor-pointer"
+              
+              className={`bg-[#FFEF9D] text-[14px] font-semibold border-2 border-black py-[11px] px-4 rounded-[15px] ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#FFE768] cursor-pointer'}`}
             >
               {language === 'ar' ? 'تحميل ملف' : 'Upload File'}
             </label>

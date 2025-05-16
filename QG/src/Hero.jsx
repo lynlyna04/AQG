@@ -4,9 +4,24 @@ import { useLanguage } from './hooks/useLanguage'; // Import the hook
 function Hero() {
   const navigate = useNavigate();
   const { language } = useLanguage(); // Get current language
+  
 
   const handleGetStartedClick = () => {
-    navigate('/Generate');
+    const user = localStorage.getItem('user');
+    if (!user) {
+      navigate('/login');
+    }else {
+      navigate('/Generate');
+    }
+  };
+
+  const handleGetStarted = () => {
+    const user = localStorage.getItem('user');
+    if (!user) {
+      navigate('/login');
+    }else {
+      navigate('/Generate-subject');
+    }
   };
 
   return (
@@ -39,7 +54,7 @@ function Hero() {
 
   <button
     className="bg-[#FFEF9D] text-[18px] font-semibold border-2 border-black px-12 py-2 rounded-[15px] hover:bg-[#FFE768] flex items-center"
-    onClick={() => navigate('/generate-subject')}
+    onClick={handleGetStarted}
   >
     {language === 'en' ? 'Generate Subject' : 'إنشاء الموضوع'}
     <img src="/Icon.png" alt="icon" className={`ml-2 ${language === 'ar' ? 'scale-x-[-1] ml-[-20px] mr-4' : ''}`} />
