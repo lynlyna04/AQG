@@ -1,4 +1,3 @@
-
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import torch
 from flask import Flask, request, jsonify
@@ -19,25 +18,32 @@ tokenizer = AutoTokenizer.from_pretrained(
     use_fast=False # force slow tokenizer
 )
 
-def segment_by_points_grouped(text):
-    # Split the text by periods
-    segments = text.split('.')
+def segment_by_points_grouped(text, tokenizer, max_tokens=60, min_tokens=30):
+    words = text.split()
+    chunks = []
+    current_chunk = []
     
-    # Clean up the segments and remove empty ones
-    paragraphs = [segment.strip() for segment in segments if segment.strip()]
+    for word in words:
+        current_chunk.append(word)
+        encoded = tokenizer(' '.join(current_chunk), return_tensors="pt", add_special_tokens=False)
+        length = encoded.input_ids.shape[1]
+        
+        if length >= max_tokens:
+            # Remove last word to keep it under max
+            last_word = current_chunk.pop()
+            chunks.append(' '.join(current_chunk))
+            current_chunk = [last_word]
     
-    # Add the period back to each paragraph (as needed)
-    if text.endswith('.'):
-        paragraphs = [f"{para}." for para in paragraphs]
-    else:
-        paragraphs = [f"{para}." for para in paragraphs[:-1]] + [paragraphs[-1]] if paragraphs else []
+    # Handle the final chunk
+    if current_chunk:
+        encoded = tokenizer(' '.join(current_chunk), return_tensors="pt", add_special_tokens=False)
+        if chunks and encoded.input_ids.shape[1] < min_tokens:
+            # Merge with previous if too small
+            chunks[-1] += ' ' + ' '.join(current_chunk)
+        else:
+            chunks.append(' '.join(current_chunk))
     
-    # Group every 3 paragraphs together
-    grouped_paragraphs = [
-        ' '.join(paragraphs[i:i+3]) for i in range(0, len(paragraphs), 3)
-    ]
-    
-    return grouped_paragraphs
+    return chunks
 
 
 
@@ -48,7 +54,7 @@ def generate_questions():
         # Get the text input from the frontend
         data = request.get_json()
         input_text = data.get("text", "")
-        paragraphs = segment_by_points_grouped(input_text)
+        paragraphs = segment_by_points_grouped(input_text, tokenizer)
         
         # Check if paragraphs are empty   
         if not paragraphs:
@@ -86,7 +92,7 @@ def generate_subject_options():
     try:
         data = request.get_json()
         input_text = data.get("text", "")
-        paragraphs = segment_by_points_grouped(input_text)
+        paragraphs = segment_by_points_grouped(input_text, tokenizer)
 
         if not paragraphs:
             return jsonify({"error": "No valid paragraphs found."}), 400
@@ -116,6 +122,3 @@ def generate_subject_options():
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
-
-
-
