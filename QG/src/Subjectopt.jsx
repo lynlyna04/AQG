@@ -138,7 +138,7 @@ function Subjectopt() {
               {/* Number of Synonyms */}
               <div className="flex items-center mb-6">
                 <p className="text-gray-800 w-50">
-                  عدد المرادفات :
+                  {language === "ar" ? "عدد المرادفات :" : "Number of synonyms:"}
                 </p>
                 <select className="border border-gray-400 rounded px-2 py-1">
                   <option value="0">0</option>
@@ -150,7 +150,7 @@ function Subjectopt() {
               {/* Number of Antonyms */}
               <div className="flex items-center mb-6">
                 <p className="text-gray-800 w-50">
-                  عدد الأضداد :
+                  {language === "ar" ? "عدد الأضداد :" : "Number of antonyms:"}
                 </p>
                 <select className="border border-gray-400 rounded px-2 py-1">
                   <option value="0">0</option>
@@ -160,13 +160,13 @@ function Subjectopt() {
               </div>
 
               <h3 className="text-lg font-bold text-gray-900 mb-4">
-                القواعد
+                {language === "ar" ? "القواعد" : "Grammar"}
               </h3>
 
               {/* iʿrāb Question */}
               <div className="flex items-center mb-6">
                 <p className="text-gray-800 w-60">
-                  كم عدد الكلمات المطلوبة للإعراب؟
+                  {language === "ar" ? "كم عدد الكلمات المطلوبة للإعراب؟" : "Words for i#rāb (parsing)?"}
                 </p>
                 <select
                   className="border border-gray-400 rounded px-2 py-1"
@@ -183,7 +183,7 @@ function Subjectopt() {
               {/* Tense Identification */}
               <div className="flex items-center mb-6">
                 <p className="text-gray-800 w-60">
-                  كم عدد الأفعال لتحديد الزمن؟
+                  {language === "ar" ? "كم عدد الأفعال لتحديد الزمن؟" : "Verbs to identify the tense?"}
                 </p>
                 <select className="border border-gray-400 rounded px-2 py-1">
                   <option value="0">0</option>
@@ -195,7 +195,7 @@ function Subjectopt() {
                           
               <div className="flex items-center mb-6">
                 <p className="text-gray-800 w-60">
-                  كم عدد الجمل لتحديد نوع الجملة؟
+                  {language === "ar" ? "كم عدد الجمل لتحديد نوع الجملة؟" : "Sentences to classify (nominal/verbal)?"}
                 </p>
                 <select className="border border-gray-400 rounded px-2 py-1">
                   <option value="0">0</option>
@@ -207,7 +207,7 @@ function Subjectopt() {
 
               <div className="flex items-center mb-6">
                 <p className="text-gray-800 w-60">
-                  كم عدد الكلمات لتحديد نوع الكلمة؟
+                  {language === "ar" ? "كم عدد الكلمات لتحديد نوع الكلمة؟" : "Words to categorize (noun/verb/particle)?"}
                 </p>
                 <select className="border border-gray-400 rounded px-2 py-1">
                   <option value="0">0</option>
@@ -220,7 +220,7 @@ function Subjectopt() {
                 <textarea
                   className="flex-grow border border-gray-300 p-2 rounded text-sm"
                   rows="2"
-                  placeholder="أدخل الكلمات مفصولة بفواصل"
+                  placeholder={language === "ar" ? "أدخل الكلمات مفصولة بفواصل" : "Enter words separated by commas"}
                   value={userInputWords}
                   onChange={(e) => setUserInputWords(e.target.value)}
                 />
@@ -237,7 +237,7 @@ function Subjectopt() {
             onClick={handleGenerateClick}
             className="mt-4 bg-[#FFB3B3] text-black font-semibold px-6 py-2 rounded shadow hover:bg-[#ffa1a1] transition"
           >
-            إنشاء
+            {language === "ar" ? "إنشاء " : "Generate"}
           </button>
         </div>
 
