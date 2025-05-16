@@ -7,25 +7,25 @@ function Body() {
     const { language } = useLanguage(); // Get current language
     return (
         <div>
-            <div className="bg-[#21FFAE] h-250 mb-30">
+            <div className="bg-[#21FFAE] h-250 mb-30 relative">
   <img src="/Group 33.png" className="mt-[-70px] absolute" />
   <h2 className="text-semibold flex justify-center items-center px-16 py-30 text-[48px] font-semibold">
     {language === 'ar' ? 'كيف يعمل؟' : 'How it works?'}
   </h2>
-  <img src="./ni9er.png" />
+  <img src="./ni9er.png"/>
 
   {/* Box 1 */}
   <div className={`w-[250px] rounded-[10px] border-1 border- shadow-md overflow-hidden mt-[-470px] ${language === 'ar' ? 'ml-220' : 'ml-65'}`}>
     <div className="bg-[#FFB3B3] p-4 border-b border-black" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       <h3 className={`text-xl font-bold text-black ${language === 'ar' ? 'text-right' : ''}`}>
-        {language === 'ar' ? 'الصق نصك' : 'Paste Your Text'}
+        {language === 'ar' ? 'الصق النص' : 'Paste Your Text'}
       </h3>
     </div>
     <div className="bg-white p-4" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       <p className={`text-gray-800 leading-6 ${language === 'ar' ? 'text-right' : ''}`}>
         {language === 'ar'
-          ? 'قم بإدخال فقرة أو قصة أو مقالة باللغة العربية.'
-          : 'Simply drop in any Arabic paragraph, story or article.'}
+          ? 'الصق فقرة أو قصة أو فكرة موضوع للبدء.'
+          : 'Paste an Arabic paragraph, story, or topic idea to get started.'}
       </p>
     </div>
   </div>
@@ -34,14 +34,14 @@ function Body() {
   <div className={`w-[250px] rounded-[10px] border-1 border- shadow-md overflow-hidden mt-[-20px] ${language === 'ar' ? 'ml-170' : 'ml-110'}`}>
     <div className="bg-[#FFB3B3] p-4 border-b border-black" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       <h3 className={`text-xl font-bold text-black ${language === 'ar' ? 'text-right' : ''}`}>
-        {language === 'ar' ? 'انقر على "توليد"' : 'Click “Generate”'}
+        {language === 'ar' ? 'اضغط على "توليد"' : 'Click “Generate”'}
       </h3>
     </div>
     <div className="bg-white p-4" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       <p className={`text-gray-800 leading-6 ${language === 'ar' ? 'text-right' : ''}`}>
         {language === 'ar'
-          ? 'يقوم محركنا الذكي بإنشاء أسئلة مخصصة لنصك.'
-          : 'Our smart engine creates questions tailored to your text.'}
+          ? 'انقر لتوليد أسئلة أو اقتراحات مواضيع مخصصة باستخدام الذكاء الاصطناعي.'
+          : 'Click to generate custom questions or subject suggestions using AI.'}
       </p>
     </div>
   </div>
@@ -56,8 +56,8 @@ function Body() {
     <div className="bg-white p-4" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       <p className={`text-gray-800 leading-6 ${language === 'ar' ? 'text-right' : ''}`}>
         {language === 'ar'
-          ? 'استعرض الأسئلة، ثم قم بتنزيلها أو طباعتها للفصل أو المنزل.'
-          : 'Preview questions, then download or print for the classroom or home.'}
+          ? 'راجع النتائج، ثم نزّلها أو اطبعها للصف أو الواجبات.'
+          : 'Review the results, then download or print for use in class or assignments.'}
       </p>
     </div>
   </div>
@@ -72,20 +72,21 @@ function Body() {
     <div className="bg-white p-4" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       <p className={`text-gray-800 leading-6 ${language === 'ar' ? 'text-right' : ''}`}>
         {language === 'ar'
-          ? 'دع الأطفال يجيبون، واحصل على تعليقات فورية، وشاهد مدى تطورهم في الفهم والثقة.'
-          : 'Let kids answer, get instant feedback, and watch their comprehension and confidence.'}
+          ? 'استخدم الأسئلة أو المواضيع لتحفيز التعلم والنقاش والفهم العميق.'
+          : 'Use the questions or subjects to spark learning, discussions, and deeper understanding.'}
       </p>
     </div>
   </div>
 
-  <img src="/Group 33.png" className="mt-[150px] absolute" />
+          <img src="/Group 33.png" className={`absolute ${language === 'ar' ? 'mt-[170px]' : 'mt-[50px]'}`} />
 </div>
+
 
 
 
 <div className="h-150">
   <h2 className="flex justify-center items-center px-16 text-[48px] font-semibold">
-    {language === 'en' ? 'Features at a glance' : 'مميزات في لمحة'}
+    {language === 'en' ? 'Features at a Glance' : 'الميزات في لمحة'}
   </h2>
 
   <div className="max-w-6xl mx-auto px-4 mt-24">
@@ -97,12 +98,12 @@ function Body() {
           <img src="/icon1.png" alt="Icon 1" className="mx-auto w-12 h-12" />
         </div>
         <h3 className="text-xl font-semibold mb-2">
-          {language === 'en' ? 'Automatic Question Generation' : 'توليد الأسئلة تلقائيًا'}
+          {language === 'en' ? 'AI-Powered Content Generation' : 'توليد المحتوى بالذكاء الاصطناعي'}
         </h3>
         <p className="text-gray-700">
           {language === 'en'
-            ? 'Generate meaningful questions from any Arabic text using AI.'
-            : 'قم بتوليد أسئلة هادفة من أي نص عربي باستخدام الذكاء الاصطناعي.'}
+            ? 'Generate Arabic questions and subject ideas instantly using smart AI.'
+            : 'قم بتوليد أسئلة وأفكار مواضيع باللغة العربية فورًا باستخدام الذكاء الاصطناعي.'}
         </p>
       </div>
 
@@ -112,12 +113,12 @@ function Body() {
           <img src="/icon2.png" alt="Icon 2" className="mx-auto w-12 h-12" />
         </div>
         <h3 className="text-xl font-semibold mb-2">
-          {language === 'en' ? 'Arabic Language Support' : 'دعم اللغة العربية'}
+          {language === 'en' ? 'Designed for Arabic' : 'مصمم خصيصًا للعربية'}
         </h3>
         <p className="text-gray-700">
           {language === 'en'
-            ? 'Built specifically for Arabic grammar, structure, and flow.'
-            : 'مصمم خصيصًا ليتناسب مع قواعد وبنية اللغة العربية.'}
+            ? 'Tailored to fit the grammar, logic, and learning style of Arabic content.'
+            : 'مصمم ليتناسب مع القواعد والأسلوب والمنهج التعليمي للنصوص العربية.'}
         </p>
       </div>
 
@@ -127,18 +128,19 @@ function Body() {
           <img src="/icon3.png" alt="Icon 3" className="mx-auto w-12 h-12" />
         </div>
         <h3 className="text-xl font-semibold mb-2">
-          {language === 'en' ? 'Simple & Intuitive Interface' : 'واجهة بسيطة وسهلة الاستخدام'}
+          {language === 'en' ? 'Easy to Use' : 'سهل الاستخدام'}
         </h3>
         <p className="text-gray-700">
           {language === 'en'
-            ? 'Paste your Arabic text and generate questions in one click.'
-            : 'ألصق نصك العربي وولد الأسئلة بنقرة واحدة فقط.'}
+            ? 'Paste your text and get questions or topics with a single click.'
+            : 'ألصق نصك واحصل على أسئلة أو مواضيع بنقرة واحدة فقط.'}
         </p>
       </div>
 
     </div>
   </div>
 </div>
+
 
 
             <div className="bg-[#FFB3B3] h-250 mb-30">
@@ -195,7 +197,7 @@ function Body() {
 
 
 
-            <div className="w-150 max-w-4xl mx-auto mt-20 mb-20 px-4">
+<div className="w-150 max-w-4xl mx-auto mt-20 mb-20 px-4">
   <h2
     className={`flex justify-center items-center px-16 text-[48px] font-semibold mb-[-30px] ${
       language === 'ar' ? 'text-right' : ''
@@ -207,34 +209,35 @@ function Body() {
 
   <img src="./ThreeDee Male (4).png" className="w-[100px]" />
 
-  <div className="space-y-6" dir={language === 'ar' ? 'rtl' : ''}>
+  <div className="space-y-6" dir={language === 'ar' ? 'rtl' : 'ltr'}>
     {[
       {
         question: language === 'ar' ? 'ما هو My Quizzer؟' : 'What is My Quizzer?',
         answer: language === 'ar'
-          ? 'هو منشئ اختبارات ممتعة باللغة العربية للأطفال يساعد على الفهم.'
-          : "It's a fun Arabic quiz generator for kids that helps with comprehension."
+          ? 'هو أداة ذكية تولّد أسئلة ومواضيع تعليمية باللغة العربية لمساعدتك في التدريس والتعلم.'
+          : 'It’s a smart tool that generates Arabic questions and subject ideas to help with teaching and learning.'
       },
       {
         question: language === 'ar' ? 'هل هو مجاني؟' : 'Is it free to use?',
         answer: language === 'ar'
-          ? 'نعم! يمكنك البدء باستخدامه مجانًا تمامًا.'
-          : "Yes! It's completely free to get started."
+          ? 'نعم! يمكنك استخدامه مجانًا للبدء وتطوير مهاراتك التعليمية.'
+          : "Yes! You can start using it for free to enhance your teaching skills."
       },
       {
-        question: language === 'ar' ? 'هل يمكنني استخدامه على الهاتف؟' : 'Can I use it on mobile?',
+        question: language === 'ar' ? 'هل يعمل على الهاتف؟' : 'Can I use it on mobile?',
         answer: language === 'ar'
-          ? 'بالتأكيد! إنه مناسب للهواتف ويعمل على جميع الأجهزة.'
-          : "Absolutely! It's mobile-friendly and works on all devices."
+          ? 'بالتأكيد! التطبيق متوافق مع الهواتف ويعمل بسلاسة على جميع الأجهزة.'
+          : "Absolutely! The tool is mobile-friendly and works smoothly on all devices."
       }
     ].map((faq, index) => (
-      <details key={index} className="bg-white border border-black rounded-x1 p-4 ">
+      <details key={index} className="bg-white border border-black rounded-x1 p-4">
         <summary className="text-lg font-semibold cursor-pointer">{faq.question}</summary>
         <p className="mt-2 text-gray-700">{faq.answer}</p>
       </details>
     ))}
   </div>
 </div>
+
 
 
 

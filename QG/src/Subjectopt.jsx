@@ -38,8 +38,7 @@ function Subjectopt() {
   const [parsedPronouns, setParsedPronouns] = useState([]);
   const [verbTense, setVerbTense] = useState("الماضي");
   
-  // For the preview block, always use Arabic settings regardless of useLanguage
-  const previewIsArabic = true;
+
   
   const handleChange = (event) => {
     setUserInputWords(event.target.value);
@@ -409,7 +408,8 @@ function Subjectopt() {
             <div className="bg-[#FFB3B3] p-2 border-b border-black">
               <h3 className="text-l font-bold text-black text-center">
                 معاينة الموضوع
-              </h3>
+                          </h3>
+                          
             </div>
             
             {isLoading ? (
@@ -441,16 +441,12 @@ function Subjectopt() {
                   </li>
                   {parsedSyno.length > 0 && (
                     <li>
-                      {language === "ar"
-                        ? `أعط مرادفات الكلمات التالية و وظفها في جملة مفيدة: ${parsedSyno.join("، ")}`
-                        : `Give the synonyms of the words: ${parsedSyno.join(", ")}`}
+                      {`أعط مرادفات الكلمات التالية و وظفها في جملة مفيدة: ${parsedSyno.join("، ")}`}
                     </li>
                   )}
                   {parsedAntonyms.length > 0 && (
                     <li>
-                      {language === "ar"
-                        ? `أعط الأضداد الكلمات التالية و وظفها في جملة مفيد : ${parsedAntonyms.join("، ")}`
-                        : `Give the antonyms of the words: ${parsedAntonyms.join(", ")}`}
+                      {`أعط الأضداد الكلمات التالية و وظفها في جملة مفيدة : ${parsedAntonyms.join("، ")}`}
                     </li>
                   )}
                 </ol>
@@ -517,7 +513,7 @@ function Subjectopt() {
   {transformInput && transformInput.trim() !== "" && (
     <li>
       <h3 className="font-semibold text-lg mb-2">
-        حول {transformInput.split(/[,،]/).map(word => word.trim()).join("، ")} إلى {transformType}.
+         حول " {transformInput.split(/[,،]/).map(word => word.trim()).join("، ")}" إلى {transformType}.
       </h3>
     </li>
   )}

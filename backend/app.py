@@ -1,21 +1,37 @@
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import torch
-from flask import Flask, request, jsonify
-from flask_cors import CORS  # Import CORS
+from flask import Flask, request, jsonify, g
+from flask_cors import CORS
+import sqlite3
+import bcrypt
+import os
 
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:5173"])
 
+# Database setup
+DATABASE = './users.db'
 
-# Load model and tokenizer
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+def get_db():
+    db = getattr(g, '_database', None)
+    if db is None:
+        db = g._database = sqlite3.connect(DATABASE)
+        db.row_factory = sqlite3.Row  # This enables column access by name: row['column_name']
+    return db
 
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
+
+# Load ML model and tokenizer
 token = "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"
 
 model = AutoModelForSeq2SeqLM.from_pretrained("NadirFartas/AraT5-trained-11epochs", use_auth_token=token)
 tokenizer = AutoTokenizer.from_pretrained(
     "NadirFartas/AraT5-trained-11epochs",
-    use_fast=False # force slow tokenizer
+    use_fast=False  # force slow tokenizer
 )
 
 def segment_by_points_grouped(text, tokenizer, max_tokens=60, min_tokens=30):
@@ -45,9 +61,75 @@ def segment_by_points_grouped(text, tokenizer, max_tokens=60, min_tokens=30):
     
     return chunks
 
+# User authentication routes
+@app.route('/signup', methods=['POST'])
+def signup():
+    try:
+        data = request.get_json()
+        username = data.get('username')
+        email = data.get('email')
+        password = data.get('password')
+        
+        if not all([username, email, password]):
+            return jsonify({"message": "Missing required fields"}), 400
+        
+        # Check if user exists
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute("SELECT * FROM user WHERE email = ?", (email,))
+        user = cursor.fetchone()
+        
+        if user:
+            return jsonify({"message": "User already exists!"}), 400
+        
+        # Hash password
+        salt = bcrypt.gensalt(10)
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
+        
+        # Insert user
+        cursor.execute(
+            "INSERT INTO user (username, email, password) VALUES (?, ?, ?)",
+            (username, email, hashed_password.decode('utf-8'))
+        )
+        db.commit()
+        
+        return jsonify({"message": "User registered successfully!"}), 201
+    
+    except Exception as e:
+        return jsonify({"message": f"Error: {str(e)}"}), 500
 
+@app.route('/login', methods=['POST'])
+def login():
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+        
+        if not all([email, password]):
+            return jsonify({"message": "Missing required fields"}), 400
+        
+        # Check if user exists
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute("SELECT * FROM user WHERE email = ?", (email,))
+        user = cursor.fetchone()
+        
+        if not user:
+            return jsonify({"message": "Invalid email or password!"}), 400
+        
+        # Check password
+        if bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
+            return jsonify({
+                "username": user['username'],
+                "email": user['email']
+            }), 200
+        else:
+            return jsonify({"message": "Invalid email or password!"}), 400
+    
+    except Exception as e:
+        return jsonify({"message": f"Error: {str(e)}"}), 500
 
-
+# ML model routes
 @app.route('/generate', methods=['POST'])
 def generate_questions():
     try:
@@ -85,7 +167,6 @@ def generate_questions():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
 
 @app.route('/generate-subject', methods=['POST'])
 def generate_subject_options():
@@ -119,6 +200,26 @@ def generate_subject_options():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# Database initialization script
+def init_db():
+    with app.app_context():
+        db = get_db()
+        cursor = db.cursor()
+        
+        # Create user table if it doesn't exist
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS user (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL
+        )
+        ''')
+        db.commit()
 
 if __name__ == '__main__':
+    # Initialize the database
+    init_db()
+    
+    # Run the Flask app
     app.run(port=5000, debug=True)

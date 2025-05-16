@@ -17,7 +17,25 @@ function Header() {
     if (savedUser) {
         setUser(savedUser); // Make sure user is correctly set
     }
-}, []);
+  }, []);
+
+  const handleGetStartedClick = () => {
+      const user = localStorage.getItem('user');
+      if (!user) {
+        navigate('/login');
+      }else {
+        navigate('/Generate');
+      }
+    };
+
+  const handleGetStarted = () => {
+    const user = localStorage.getItem('user');
+    if (!user) {
+      navigate('/login');
+    }else {
+      navigate('/Generate-subject');
+    }
+  };
 
 
   useEffect(() => {
@@ -34,9 +52,10 @@ function Header() {
   }, []);
 
   const handleLogout = () => {
+
     localStorage.removeItem('user');
     setUser(null);
-    navigate('/');
+    navigate('/login');
   };
 
 
@@ -130,13 +149,13 @@ function Header() {
               {language === 'en' ? 'Home' : 'الرئيسية'}
             </a>
             <a
-  onClick={() => navigate('/generate')}
+  onClick={handleGetStartedClick}
   className="cursor-pointer px-4 py-2 rounded transition-all duration-300 hover:bg-[#FFEF9D] hover:text-black"
 >
   {language === 'en' ? 'Generate Q' : 'أنشئ'}
 </a>
 <a
-  onClick={() => navigate('/generate-subject')}
+  onClick={handleGetStarted}
   className="cursor-pointer px-4 py-2 rounded transition-all duration-300 hover:bg-[#FFEF9D] hover:text-black"
 >
   {language === 'en' ? 'Generate Subject' : 'أنشئ موضوع'}
