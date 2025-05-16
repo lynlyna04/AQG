@@ -25,12 +25,17 @@ function Subjectopt() {
   // For the preview block, always use Arabic settings regardless of useLanguage
   const previewIsArabic = true;
   
+  const handleChange = (event) => {
+    setUserInputWords(event.target.value);
+    handleParseWords();
+  };
+
   function handleParseWords() {
     const words = userInputWords
       .split(/[,،]/) // Regex to split on either , or ،
       .map(word => word.trim())
       .filter(Boolean);
-    setTempParsedWords(words); // Store in temporary state
+    setParsedWords(words); // Store in temporary state
   }
 
   useEffect(() => {
@@ -76,7 +81,7 @@ function Subjectopt() {
     // Apply the temporary values to the actual preview state
     setI3rabCount(tempI3rabCount);
     setQCount(tempQCount);
-    setParsedWords(tempParsedWords);
+    handleParseWords();
     
     // Get new i3rab words based on the newly set i3rabCount
     if (tempI3rabCount > 0 && previewText) {
@@ -166,7 +171,7 @@ function Subjectopt() {
               {/* iʿrāb Question */}
               <div className="flex items-center mb-6">
                 <p className="text-gray-800 w-60">
-                  {language === "ar" ? "كم عدد الكلمات المطلوبة للإعراب؟" : "Words for i#rāb (parsing)?"}
+                  {language === "ar" ? "كم عدد الكلمات المطلوبة للإعراب؟" : "Words for i3rāb (parsing)?"}
                 </p>
                 <select
                   className="border border-gray-400 rounded px-2 py-1"
@@ -222,14 +227,14 @@ function Subjectopt() {
                   rows="2"
                   placeholder={language === "ar" ? "أدخل الكلمات مفصولة بفواصل" : "Enter words separated by commas"}
                   value={userInputWords}
-                  onChange={(e) => setUserInputWords(e.target.value)}
+                  onChange={handleChange}
                 />
-                <button
+                {/*<button
                   onClick={handleParseWords}
                   className="bg-[#FFB3B3] text-black font-semibold px-3 py-1 rounded shadow hover:bg-[#ffa1a1] transition text-sm"
                 >
                   تحليل
-                </button>
+                </button>*/}
               </div>
             </div>
           </div>
