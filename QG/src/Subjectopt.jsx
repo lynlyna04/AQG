@@ -394,12 +394,27 @@ function Subjectopt() {
               </div>
             </div>
           </div>
-          <button
-            onClick={handleGenerateClick}
-            className="mt-4 bg-[#FFB3B3] text-black font-semibold px-6 py-2 rounded shadow hover:bg-[#ffa1a1] transition"
-          >
-            {language === "ar" ? "إنشاء " : "Generate"}
-          </button>
+          <div className="flex gap-4 mt-4">
+            <button
+              onClick={handleGenerateClick}
+              className="bg-[#FFB3B3] text-black font-semibold px-6 py-2 rounded shadow hover:bg-[#ffa1a1] transition"
+            >
+              {language === "ar" ? "إنشاء " : "Generate"}
+            </button>
+            
+            {/* Add Save as PDF button - only show when preview is available */}
+            {showPreview && !isLoading && (
+              <button
+                className="bg-[#b3d1ff] text-black font-semibold px-6 py-2 rounded shadow hover:bg-[#a1c1ff] transition flex items-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                {language === "ar" ? "حفظ كـ PDF" : "Save as PDF"}
+              </button>
+            )}
+          </div>
+                  
         </div>
 
         {/* Right Block (preview box) - Conditionally rendered, always in Arabic */}
