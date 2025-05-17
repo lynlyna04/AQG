@@ -1,13 +1,63 @@
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import torch
-from flask import Flask, request, jsonify, g
+from flask import Flask, request, send_file, jsonify, g
 from flask_cors import CORS
 import sqlite3
 import bcrypt
 import os
+import pdfkit
+from io import BytesIO
+import tempfile
 
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:5173"])
+
+# Define path to wkhtmltopdf executable based on OS
+import platform
+
+if platform.system() == 'Windows':
+    wkhtmltopdf_path = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
+    # Alternative common locations to check if the above doesn't work
+    if not os.path.exists(wkhtmltopdf_path):
+        alt_paths = [
+            r'C:\Program Files (x86)\wkhtmltopdf\bin\wkhtmltopdf.exe',
+            r'C:\wkhtmltopdf\bin\wkhtmltopdf.exe'
+        ]
+        for path in alt_paths:
+            if os.path.exists(path):
+                wkhtmltopdf_path = path
+                break
+elif platform.system() == 'Linux':
+    wkhtmltopdf_path = '/usr/local/bin/wkhtmltopdf'
+    if not os.path.exists(wkhtmltopdf_path):
+        # Try to find using which command
+        import subprocess
+        try:
+            wkhtmltopdf_path = subprocess.check_output(['which', 'wkhtmltopdf']).decode('utf-8').strip()
+        except:
+            pass
+elif platform.system() == 'Darwin':  # macOS
+    wkhtmltopdf_path = '/usr/local/bin/wkhtmltopdf'
+    if not os.path.exists(wkhtmltopdf_path):
+        # Try common macOS paths
+        alt_paths = [
+            '/opt/homebrew/bin/wkhtmltopdf',
+            '/usr/bin/wkhtmltopdf'
+        ]
+        for path in alt_paths:
+            if os.path.exists(path):
+                wkhtmltopdf_path = path
+                break
+
+# Check if wkhtmltopdf exists at the specified path
+if not os.path.exists(wkhtmltopdf_path):
+    print(f"WARNING: wkhtmltopdf not found at {wkhtmltopdf_path}. PDF generation may fail.")
+    # You might want to set it to None and let pdfkit try to find it automatically
+    config = None
+else:
+    print(f"Using wkhtmltopdf at: {wkhtmltopdf_path}")
+    config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_path)
+
 
 # Database setup
 DATABASE = './users.db'
@@ -197,6 +247,144 @@ def generate_subject_options():
             "original_text": input_text
         }), 200
 
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+# PDF generation route - Changed to a different route name
+@app.route('/generate-pdf', methods=['POST'])
+def generate_pdf():
+    try:
+        data = request.get_json()
+        html_content = data.get("htmlContent")
+
+        if not html_content:
+            return jsonify({"error": "No HTML content provided"}), 400
+            
+        # Add proper HTML structure with UTF-8 encoding and right-to-left direction for Arabic
+        # Include improved table styling
+        html_with_encoding = f"""
+        <!DOCTYPE html>
+        <html dir="rtl" lang="ar">
+        <head>
+            <meta charset="UTF-8">
+            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+            <style>
+                body {{
+                    font-family: 'Arial', 'Tahoma', sans-serif;
+                    direction: rtl;
+                    text-align: right;
+                    padding: 20px;
+                    font-size: 14px;
+                }}
+                
+                /* Table styling */
+                table {{
+                    border-collapse: collapse;
+                    width: 100%;
+                    margin-bottom: 20px;
+                    page-break-inside: auto;
+                    border: 1px solid #ddd;
+                }}
+                
+                table, th, td {{
+                    border: 1px solid #ddd;
+                }}
+                
+                th, td {{
+                    padding: 8px;
+                    text-align: right;
+                }}
+                
+                th {{
+                    background-color: #f2f2f2;
+                    font-weight: bold;
+                }}
+                
+                tr {{
+                    page-break-inside: avoid;
+                    page-break-after: auto;
+                }}
+                
+                tr:nth-child(even) {{
+                    background-color: #f9f9f9;
+                }}
+                
+                thead {{
+                    display: table-header-group;
+                }}
+                
+                tfoot {{
+                    display: table-footer-group;
+                }}
+                
+                @font-face {{
+                    font-family: 'Arabic';
+                    src: url('https://fonts.googleapis.com/css2?family=Cairo&display=swap');
+                }}
+                
+                h1, h2, h3, h4, h5, h6 {{
+                    font-weight: bold;
+                    margin-top: 20px;
+                    margin-bottom: 10px;
+                }}
+                
+                p {{
+                    margin-bottom: 10px;
+                }}
+            </style>
+        </head>
+        <body>
+            {html_content}
+        </body>
+        </html>
+        """
+
+        # Create temporary file for PDF
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
+            pdf_path = tmp_file.name
+            
+        # Enhanced options for table rendering
+        options = {
+            'encoding': 'UTF-8',
+            'enable-local-file-access': None,
+            'disable-smart-shrinking': None,
+            'print-media-type': None,
+            'page-size': 'A4',
+            'dpi': 300,
+            'image-dpi': 300,
+            'image-quality': 100,
+            'enable-javascript': None,
+            'javascript-delay': 1000,  # 1 second delay for tables to render
+            'no-stop-slow-scripts': None,
+            'custom-header': [
+                ('Content-Type', 'text/html; charset=UTF-8'),
+            ],
+            'margin-top': '20mm',
+            'margin-right': '20mm',
+            'margin-bottom': '20mm',
+            'margin-left': '20mm',
+        }
+            
+        # Generate PDF using pdfkit with the configuration
+        if config:
+            pdfkit.from_string(html_with_encoding, pdf_path, options=options, configuration=config)
+        else:
+            # Try without specific configuration
+            try:
+                pdfkit.from_string(html_with_encoding, pdf_path, options=options)
+            except Exception as e:
+                return jsonify({
+                    "error": f"PDF generation failed: {str(e)}",
+                    "solution": "Please install wkhtmltopdf from https://wkhtmltopdf.org/downloads.html"
+                }), 500
+        
+        # Send the file
+        return send_file(
+            pdf_path,
+            as_attachment=True,
+            download_name="generated.pdf",
+            mimetype='application/pdf'
+        )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

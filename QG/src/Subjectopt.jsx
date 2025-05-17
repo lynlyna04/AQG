@@ -179,6 +179,120 @@ function Subjectopt() {
     }, 1500);
   };
   
+    
+  const downloadPdf = async () => {
+    try {
+      // Find the content element to export
+      const contentDiv = document.getElementById('export-content');
+    
+      if (!contentDiv) {
+        alert("Export content not found in the DOM.");
+        return;
+      }
+    
+      // Show loading indicator (optional)
+      const loadingIndicator = document.createElement('div');
+      loadingIndicator.textContent = 'Generating PDF...';
+      loadingIndicator.style.position = 'fixed';
+      loadingIndicator.style.top = '50%';
+      loadingIndicator.style.left = '50%';
+      loadingIndicator.style.transform = 'translate(-50%, -50%)';
+      loadingIndicator.style.padding = '20px';
+      loadingIndicator.style.backgroundColor = 'rgba(0,0,0,0.7)';
+      loadingIndicator.style.color = 'white';
+      loadingIndicator.style.borderRadius = '5px';
+      loadingIndicator.style.zIndex = '1000';
+      document.body.appendChild(loadingIndicator);
+      
+      // Process tables to ensure they're visible in PDF
+      const processTablesForPdf = () => {
+        // Create a deep clone of the content to avoid modifying the original
+        const contentClone = contentDiv.cloneNode(true);
+        
+        // Find all tables in the clone
+        const tables = contentClone.querySelectorAll('table');
+        
+        // Process each table
+        tables.forEach((table) => {
+          // Ensure tables have explicit width
+          table.style.width = '100%';
+          table.style.borderCollapse = 'collapse';
+          table.style.pageBreakInside = 'auto';
+          
+          // Process all cells
+          const cells = table.querySelectorAll('th, td');
+          cells.forEach((cell) => {
+            cell.style.border = '1px solid #ddd';
+            cell.style.padding = '8px';
+          });
+          
+          // Style headers
+          const headers = table.querySelectorAll('th');
+          headers.forEach((header) => {
+            header.style.backgroundColor = '#f2f2f2';
+            header.style.fontWeight = 'bold';
+          });
+        });
+        
+        return contentClone.innerHTML;
+      };
+    
+      // Get processed HTML content
+      const htmlContent = processTablesForPdf();
+    
+      // Send request to backend
+      const res = await fetch('http://localhost:5000/generate-pdf', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ htmlContent }),
+      });
+    
+      // Remove loading indicator
+      document.body.removeChild(loadingIndicator);
+    
+      // Handle error responses
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        if (errorData && errorData.error) {
+          alert(`Error: ${errorData.error}\n${errorData.solution || ''}`);
+        } else {
+          alert(`Error generating PDF: ${res.status} ${res.statusText}`);
+        }
+        return;
+      }
+    
+      // Process successful response
+      const blob = await res.blob();
+      
+      // Check if we got a valid PDF (basic check)
+      if (blob.type !== 'application/pdf' && blob.type !== 'application/octet-stream') {
+        alert(`Received invalid response type: ${blob.type}. Expected PDF.`);
+        return;
+      }
+      
+      // Create object URL and trigger download
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'generated.pdf';
+      document.body.appendChild(a);
+      a.click();
+      
+      // Clean up
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }, 100);
+      
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      alert(`Failed to generate PDF: ${error.message}`);
+    }
+  };
+  
+  
 
   return (
     <>
@@ -404,7 +518,7 @@ function Subjectopt() {
             
             {/* Add Save as PDF button - only show when preview is available */}
             {showPreview && !isLoading && (
-              <button
+              <button onClick={downloadPdf}
                 className="bg-[#b3d1ff] text-black font-semibold px-6 py-2 rounded shadow hover:bg-[#a1c1ff] transition flex items-center"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -419,7 +533,7 @@ function Subjectopt() {
 
         {/* Right Block (preview box) - Conditionally rendered, always in Arabic */}
         {(showPreview || isLoading) && (
-          <div className="w-[550px] h-auto rounded-[10px] border border-black shadow-md overflow-hidden">
+          <div className="w-[550px] h-auto rounded-[10px] border border-black shadow-md overflow-hidden" id="export-content">
             <div className="bg-[#FFB3B3] p-2 border-b border-black">
               <h3 className="text-l font-bold text-black text-center">
                 معاينة الموضوع
@@ -428,7 +542,7 @@ function Subjectopt() {
             </div>
             
             {isLoading ? (
-              <div className="bg-white p-4 h-[400px] flex items-center justify-center">
+              <div className="bg-white p-4 h-[400px] flex items-center justify-center ">
                 <div className="text-center">
                   <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#FFB3B3] border-r-transparent align-[-0.125em]" role="status">
                     <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">
