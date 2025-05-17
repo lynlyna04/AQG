@@ -8,6 +8,8 @@ import os
 import pdfkit
 from io import BytesIO
 import tempfile
+import requests
+import json
 
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:5173"])
@@ -110,6 +112,54 @@ def segment_by_points_grouped(text, tokenizer, max_tokens=60, min_tokens=30):
             chunks.append(' '.join(current_chunk))
     
     return chunks
+
+# Gemini API functions
+def extract_theme(text, api_key):
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+
+    prompt = (
+        f"أنت نموذج معالجة نصوص. استخرج الموضوع العام للنص التالي:\n{text}\n\n"
+        "أوجز الموضوع في كلمة واحدة واضحة ومختصرة."
+    )
+
+    data = {
+        "contents": [{"parts": [{"text": prompt}]}]
+    }
+    headers = {"Content-Type": "application/json"}
+
+    response = requests.post(url, headers=headers, data=json.dumps(data))
+    if response.status_code == 200:
+        theme = response.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+        return theme
+    else:
+        raise Exception(f"Theme API Error: {response.status_code} - {response.text}")
+
+def generate_instruction(text, constraints, api_key, min_lines=10, max_lines=12):
+    theme = extract_theme(text, api_key)
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+
+    constraints_str = '، '.join(constraints)
+
+    prompt = (
+        f"اكتب تعليمة قصيرة ومباشرة لوضعية إدماجية موجهة لتلميذ في المرحلة الابتدائية.\n"
+        f"الموضوع: {theme}.\n"
+        f"التعليمة يجب أن تطلب من التلميذ كتابة فقرة من {min_lines} إلى {max_lines} أسطر، "
+        f"تُبرز عناصر الموضوع، مع توظيف القواعد التالية: {constraints_str}.\n"
+        f"لا تضف مقدمة ولا تشجيع، فقط التعليمة كما تُكتب في كراس التمارين."
+    )
+
+    data = {
+        "contents": [{"parts": [{"text": prompt}]}]
+    }
+    headers = {"Content-Type": "application/json"}
+
+    response = requests.post(url, headers=headers, data=json.dumps(data))
+    if response.status_code == 200:
+        instruction = response.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+        return instruction
+    else:
+        raise Exception(f"Instruction API Error: {response.status_code} - {response.text}")
 
 # User authentication routes
 @app.route('/signup', methods=['POST'])
@@ -247,6 +297,31 @@ def generate_subject_options():
             "original_text": input_text
         }), 200
 
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# New route for Gemini API-based instruction generation
+@app.route('/generate-instruction', methods=['POST'])
+def generate_integration_instruction():
+    try:
+        data = request.get_json()
+        text = data.get("text", "")
+        constraints = data.get("constraints", [])
+        min_lines = data.get("min_lines", 10)
+        max_lines = data.get("max_lines", 12)
+        api_key = data.get("api_key", "")
+        
+        if not text or not constraints or not api_key:
+            return jsonify({"error": "Missing required fields (text, constraints, or API key)"}), 400
+        
+        # Generate instruction using Gemini API
+        instruction = generate_instruction(text, constraints, api_key, min_lines, max_lines)
+        
+        return jsonify({
+            "instruction": instruction,
+            "theme": extract_theme(text, api_key)
+        }), 200
+    
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
