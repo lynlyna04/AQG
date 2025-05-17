@@ -37,6 +37,11 @@ function Subjectopt() {
   const [pronounsInput, setPronounsInput] = useState("أنا, أنتَ, أنتِ, هو, هي, نحن, أنتم, أنتن, هم, هن");
   const [parsedPronouns, setParsedPronouns] = useState([]);
   const [verbTense, setVerbTense] = useState("الماضي");
+
+  const [writtenExpression, setWrittenExpression] = useState("");
+  const [geminiConstraints, setGeminiConstraints] = useState([]);
+  const [geminiMinLines, setGeminiMinLines] = useState(8);
+  const [geminiMaxLines, setGeminiMaxLines] = useState(10);
   
 
   
@@ -139,6 +144,34 @@ function Subjectopt() {
     setVerbTense(event.target.value);
   };
 
+  const handleWrittenExpression = async () => {
+  if (!userInputWords.trim() || geminiConstraints.length === 0) {
+    setWrittenExpression("");
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost:5000/generate-instruction", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text: previewText,
+        constraints: geminiConstraints,
+        min_lines: geminiMinLines,
+        max_lines: geminiMaxLines,
+        api_key: "AIzaSyAf33OMbH4JU7PhK48GgjK3rZLxJR3K6Qg",
+      }),
+    });
+
+    const result = await res.json();
+    setWrittenExpression(result.instruction || "");
+    } catch (error) {
+      console.error("Error generating written expression:", error);
+      alert("فشل في إنشاء الوضعية الإدماجية.");
+      setWrittenExpression("");
+    }
+  };
+
   useEffect(() => {
     const savedText = localStorage.getItem("subjectText");
     if (savedText) {
@@ -160,24 +193,27 @@ function Subjectopt() {
     }
   }, []);
   
-  const handleGenerateClick = () => {
+  const handleGenerateClick = async () => {
     setIsLoading(true);
-  
-    // Apply the temporary values
-    setQCount(tempQCount);
+
+    // Parse all inputs
     handleParseSyno();
     handleParseAntonyms();
     handleParseWords();
-    handleParseI3rab(); // Parse the i3rab words on generate click
-    handleParseTaleelWords(); // Parse تعليل words on generate click
-    handleParseVerbs(); // Parse verbs for conjugation
-    handleParsePronouns(); // Parse pronouns for conjugation table
-  
+    handleParseI3rab();
+    handleParseTaleelWords();
+    handleParseVerbs();
+    handleParsePronouns();
+
+    await handleWrittenExpression(); // 🟢 Call it here
+
+    setQCount(tempQCount);
     setTimeout(() => {
-      setIsLoading(false);
-      setShowPreview(true);
-    }, 1500);
-  };
+    setIsLoading(false);
+    setShowPreview(true);
+  }, 1500);
+};
+
   
     
   const downloadPdf = async () => {
@@ -506,6 +542,53 @@ function Subjectopt() {
                   onChange={handlePronounsInputChange}
                 />
               </div>
+
+              <h3 className="text-lg font-bold text-gray-900 mb-4">
+                {language === "ar" ? "الوضعية الإدماجية" : "Written Expression"}
+              </h3>
+
+              {/* Constraints input */}
+              <div className="flex items-center mb-4 gap-2">
+                <p className="text-gray-800 w-35">
+                  {language === "ar" ? "قواعد مستعملة:" : "Grammar constraints:"}
+                </p>
+                <input
+                  type="text"
+                  className="flex-grow border border-gray-400 rounded px-2 py-1 text-sm"
+                  placeholder={language === "ar" ? "افصل بين القواعد بفواصل" : "e.g. past tense, prepositions"}
+                  onChange={(e) =>
+                    setGeminiConstraints(
+                      e.target.value
+                        .split(/[,،]/)
+                        .map((c) => c.trim())
+                        .filter(Boolean)
+                    )
+                  }
+                />
+              </div>
+
+              {/* Min and Max line inputs */}
+              <div className="flex items-center mb-4 gap-4">
+                <label className="text-gray-800">
+                  {language === "ar" ? "عدد الأسطر الأدنى:" : "Min lines:"}
+                </label>
+                <input
+                  type="number"
+                  value={geminiMinLines}
+                  onChange={(e) => setGeminiMinLines(parseInt(e.target.value))}
+                  className="border border-gray-400 rounded px-2 py-1 text-sm w-20"
+                />
+
+                <label className="text-gray-800">
+                  {language === "ar" ? "العدد الأقصى:" : "Max lines:"}
+                </label>
+                <input
+                  type="number"
+                  value={geminiMaxLines}
+                  onChange={(e) => setGeminiMaxLines(parseInt(e.target.value))}
+                  className="border border-gray-400 rounded px-2 py-1 text-sm w-20"
+                />
+              </div>
             </div>
           </div>
           <div className="flex gap-4 mt-4">
@@ -582,101 +665,107 @@ function Subjectopt() {
 
                 <h3 className="font-bold text-lg mt-6 mb-2">البناء اللغوي:</h3>
 
-<ol className="list-decimal mr-6 space-y-6">
+                <ol className="list-decimal mr-6 space-y-6">
+                  
+                  {i3rabWords.length > 0 && (
+                    <li>
+                      <h3 className="font-semibold text-lg mb-2">اعرب الكلمات التالية:</h3>
+                      <table className="w-full border border-gray-300 text-sm mt-2">
+                        <thead>
+                          <tr className="bg-gray-100">
+                            <th className="border w-20 px-2 py-1 text-right">الكلمة</th>
+                            <th className="border px-2 py-1 text-right">الإعراب</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {i3rabWords.map((word, index) => (
+                            <tr key={index}>
+                              <td className="border px-2 py-1">{word}</td>
+                              <td className="border px-2 py-1">...</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </li>
+                  )}
 
-  {i3rabWords.length > 0 && (
-    <li>
-      <h3 className="font-semibold text-lg mb-2">اعرب الكلمات التالية:</h3>
-      <table className="w-full border border-gray-300 text-sm mt-2">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border w-20 px-2 py-1 text-right">الكلمة</th>
-            <th className="border px-2 py-1 text-right">الإعراب</th>
-          </tr>
-        </thead>
-        <tbody>
-          {i3rabWords.map((word, index) => (
-            <tr key={index}>
-              <td className="border px-2 py-1">{word}</td>
-              <td className="border px-2 py-1">...</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </li>
-  )}
+                  {parsedTaleelWords.length > 0 && (
+                    <li>
+                      <h3 className="font-semibold text-lg mb-2">علل سبب كتابة {taleelType} في:</h3>
+                      <ul className="list-disc mr-6 mt-1 pl-5">
+                        {parsedTaleelWords.map((word, index) => (
+                          <li key={index}>{word}</li>
+                        ))}
+                      </ul>
+                    </li>
+                  )}
 
-  {parsedTaleelWords.length > 0 && (
-    <li>
-      <h3 className="font-semibold text-lg mb-2">علل سبب كتابة {taleelType} في:</h3>
-      <ul className="list-disc mr-6 mt-1 pl-5">
-        {parsedTaleelWords.map((word, index) => (
-          <li key={index}>{word}</li>
-        ))}
-      </ul>
-    </li>
-  )}
+                  {parsedWords.length > 0 && (
+                    <li>
+                      <h3 className="font-semibold text-lg mb-2">استخرج من النص:</h3>
+                      <table className="w-full border border-gray-300 text-sm mt-2 mb-4">
+                        <thead>
+                          <tr className="bg-gray-100">
+                            {parsedWords.map((word, index) => (
+                              <th className="border px-2 py-1 text-right" key={index}>{word}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            {parsedWords.map((_, index) => (
+                              <td className="border px-2 py-1" key={index}>...</td>
+                            ))}
+                          </tr>
+                        </tbody>
+                      </table>
+                    </li>
+                  )}
 
-  {parsedWords.length > 0 && (
-    <li>
-      <h3 className="font-semibold text-lg mb-2">استخرج من النص:</h3>
-      <table className="w-full border border-gray-300 text-sm mt-2 mb-4">
-        <thead>
-          <tr className="bg-gray-100">
-            {parsedWords.map((word, index) => (
-              <th className="border px-2 py-1 text-right" key={index}>{word}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            {parsedWords.map((_, index) => (
-              <td className="border px-2 py-1" key={index}>...</td>
-            ))}
-          </tr>
-        </tbody>
-      </table>
-    </li>
-  )}
+                  {transformInput && transformInput.trim() !== "" && (
+                    <li>
+                      <h3 className="font-semibold text-lg mb-2">
+                        حول " {transformInput.split(/[,،]/).map(word => word.trim()).join("، ")}" إلى {transformType}.
+                      </h3>
+                    </li>
+                  )}
 
-  {transformInput && transformInput.trim() !== "" && (
-    <li>
-      <h3 className="font-semibold text-lg mb-2">
-         حول " {transformInput.split(/[,،]/).map(word => word.trim()).join("، ")}" إلى {transformType}.
-      </h3>
-    </li>
-  )}
+                  {parsedVerbs.length > 0 && parsedPronouns.length > 0 && (
+                    <li>
+                      <h3 className="font-semibold text-lg mb-2">
+                        صرف الآتي في {verbTense}:
+                      </h3>
+                      <table className="w-full border border-gray-300 text-sm mt-2">
+                        <thead>
+                          <tr className="bg-gray-100">
+                            <th className="border px-2 py-1 text-right">الضمائر</th>
+                            {parsedVerbs.map((verb, index) => (
+                              <th className="border px-2 py-1 text-right" key={index}>{verb}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {parsedPronouns.map((pronoun, index) => (
+                            <tr key={index}>
+                              <td className="border px-2 py-1">{pronoun}</td>
+                              {parsedVerbs.map((_, verbIndex) => (
+                                <td className="border px-2 py-1" key={verbIndex}>...</td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </li>
+                  )}
 
-  {parsedVerbs.length > 0 && parsedPronouns.length > 0 && (
-    <li>
-      <h3 className="font-semibold text-lg mb-2">
-        صرف الآتي في {verbTense}:
-      </h3>
-      <table className="w-full border border-gray-300 text-sm mt-2">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border px-2 py-1 text-right">الضمائر</th>
-            {parsedVerbs.map((verb, index) => (
-              <th className="border px-2 py-1 text-right" key={index}>{verb}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {parsedPronouns.map((pronoun, index) => (
-            <tr key={index}>
-              <td className="border px-2 py-1">{pronoun}</td>
-              {parsedVerbs.map((_, verbIndex) => (
-                <td className="border px-2 py-1" key={verbIndex}>...</td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </li>
-  )}
-
-</ol>
-
+                </ol>
+                
+                {writtenExpression && (
+                  <>
+                    <h3 className="font-bold text-lg mt-6 mb-2">الوضعية الإدماجية:</h3>
+                    <p className="text-gray-800 text-md leading-7 whitespace-pre-line">{writtenExpression}</p>
+                  </>
+                )}
               </div>
             )}
           </div>
