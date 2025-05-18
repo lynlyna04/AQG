@@ -6,6 +6,7 @@ import Signup from './Signup.jsx';
 import Login from './Login.jsx';
 import Subjectone from './Subjectone.jsx';
 import Subjectopt from './Subjectopt.jsx';
+import History from './History.jsx';
 
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/generate-subject" element={<Subjectone />} />
           <Route path="/generate-subjectopt" element={<Subjectopt />} />
+          <Route path="/history" element={<History />} />
         </Routes>
       </Router>
     </LanguageProvider>

@@ -169,9 +169,14 @@ def signup():
         username = data.get('username')
         email = data.get('email')
         password = data.get('password')
+        user_type = data.get('user_type')  # New field for user type (student or teacher)
         
-        if not all([username, email, password]):
+        if not all([username, email, password, user_type]):
             return jsonify({"message": "Missing required fields"}), 400
+        
+        # Validate user type
+        if user_type not in ['student', 'teacher']:
+            return jsonify({"message": "Invalid user type. Must be either 'student' or 'teacher'"}), 400
         
         # Check if user exists
         db = get_db()
@@ -186,10 +191,10 @@ def signup():
         salt = bcrypt.gensalt(10)
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
         
-        # Insert user
+        # Insert user with user_type
         cursor.execute(
-            "INSERT INTO user (username, email, password) VALUES (?, ?, ?)",
-            (username, email, hashed_password.decode('utf-8'))
+            "INSERT INTO user (username, email, password, user_type) VALUES (?, ?, ?, ?)",
+            (username, email, hashed_password.decode('utf-8'), user_type)
         )
         db.commit()
         
@@ -221,7 +226,8 @@ def login():
         if bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
             return jsonify({
                 "username": user['username'],
-                "email": user['email']
+                "email": user['email'],
+                "user_type": user['user_type']  # Return user type in the response
             }), 200
         else:
             return jsonify({"message": "Invalid email or password!"}), 400
@@ -469,15 +475,32 @@ def init_db():
         db = get_db()
         cursor = db.cursor()
         
-        # Create user table if it doesn't exist
-        cursor.execute('''
-        CREATE TABLE IF NOT EXISTS user (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL,
-            email TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL
-        )
-        ''')
+        # Check if user_type column exists in user table
+        cursor.execute("PRAGMA table_info(user)")
+        columns = cursor.fetchall()
+        has_user_type = any(column['name'] == 'user_type' for column in columns)
+        
+        if not has_user_type:
+            # Table exists but needs the user_type column added
+            try:
+                cursor.execute('ALTER TABLE user ADD COLUMN user_type TEXT DEFAULT "student"')
+                print("Added user_type column to existing user table")
+            except sqlite3.OperationalError:
+                # Handle case where column might already exist
+                pass
+        else:
+            # Create user table with user_type if it doesn't exist
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS user (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL,
+                email TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL,
+                user_type TEXT NOT NULL DEFAULT "student"
+            )
+            ''')
+            print("Created user table with user_type column")
+        
         db.commit()
 
 if __name__ == '__main__':

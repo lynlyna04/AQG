@@ -15,28 +15,27 @@ function Header() {
   useEffect(() => {
     const savedUser = JSON.parse(localStorage.getItem('user'));
     if (savedUser) {
-        setUser(savedUser); // Make sure user is correctly set
+      setUser(savedUser);
     }
   }, []);
 
   const handleGetStartedClick = () => {
-      const user = localStorage.getItem('user');
-      if (!user) {
-        navigate('/login');
-      }else {
-        navigate('/Generate');
-      }
-    };
+    const user = localStorage.getItem('user');
+    if (!user) {
+      navigate('/login');
+    } else {
+      navigate('/Generate');
+    }
+  };
 
   const handleGetStarted = () => {
     const user = localStorage.getItem('user');
     if (!user) {
       navigate('/login');
-    }else {
+    } else {
       navigate('/Generate-subject');
     }
   };
-
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -52,18 +51,24 @@ function Header() {
   }, []);
 
   const handleLogout = () => {
-
     localStorage.removeItem('user');
     setUser(null);
     navigate('/login');
   };
 
+  const getUserTypeDisplay = (type) => {
+    if (!type) return language === 'en' ? 'User' : 'مستخدم';
 
+    if (language === 'en') {
+      return type.charAt(0).toUpperCase() + type.slice(1);
+    } else {
+      return type === 'student' ? 'طالب' : 'معلم';
+    }
+  };
 
   return (
     <header>
-      <nav className="w-full h-20 flex items-center justify-between px-8 md:px-20 fixed top-0 left-0 z-50 bg-white ">
-
+      <nav className="w-full h-20 flex items-center justify-between px-8 md:px-20 fixed top-0 left-0 z-50 bg-white">
         <div className={`flex gap-4 items-center ${language === 'en' ? 'order-2' : 'order-1'}`}>
           {/* 🌐 Language dropdown */}
           <div className="relative" ref={langRef}>
@@ -123,7 +128,25 @@ function Header() {
               </button>
               {userDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-50">
+                  {/* User type label */}
+                  <div className="px-4 py-1 text-xs text-center text-gray-500 bg-gray-50">
+                    {getUserTypeDisplay(user.user_type)}
+                  </div>
+                  {/* Username */}
                   <p className="px-4 py-2 text-gray-800 border-b">{user.username}</p>
+
+                  {/* 📜 History Link */}
+                  <button
+                    onClick={() => {
+                      setUserDropdownOpen(false);
+                      navigate('/history');
+                    }}
+                    className="w-full text-left px-4 py-2 text-blue-600 hover:bg-gray-100"
+                  >
+                    {language === 'en' ? 'History' : 'السجل'}
+                  </button>
+
+                  {/* 🔓 Logout */}
                   <button
                     onClick={handleLogout}
                     className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
@@ -149,20 +172,17 @@ function Header() {
               {language === 'en' ? 'Home' : 'الرئيسية'}
             </a>
             <a
-  onClick={handleGetStartedClick}
-  className="cursor-pointer px-4 py-2 rounded transition-all duration-300 hover:bg-[#FFEF9D] hover:text-black"
->
-  {language === 'en' ? 'Generate Q' : 'أنشئ'}
-</a>
-<a
-  onClick={handleGetStarted}
-  className="cursor-pointer px-4 py-2 rounded transition-all duration-300 hover:bg-[#FFEF9D] hover:text-black"
->
-  {language === 'en' ? 'Generate Subject' : 'أنشئ موضوع'}
-</a>
-
-
-
+              onClick={handleGetStartedClick}
+              className="cursor-pointer px-4 py-2 rounded transition-all duration-300 hover:bg-[#FFEF9D] hover:text-black"
+            >
+              {language === 'en' ? 'Generate Q' : 'أنشئ'}
+            </a>
+            <a
+              onClick={handleGetStarted}
+              className="cursor-pointer px-4 py-2 rounded transition-all duration-300 hover:bg-[#FFEF9D] hover:text-black"
+            >
+              {language === 'en' ? 'Generate Subject' : 'أنشئ موضوع'}
+            </a>
           </li>
         </ul>
 

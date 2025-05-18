@@ -13,7 +13,8 @@ function Signup() {
         username: '',
         email: '',
         password: '',
-        confirmPassword: ''
+        confirmPassword: '',
+        user_type: 'student' // Default value set to student
     });
 
     const [error, setError] = useState('');
@@ -46,7 +47,8 @@ function Signup() {
         axios.post('http://localhost:5000/signup', {
             username: formData.username,
             email: formData.email,
-            password: formData.password
+            password: formData.password,
+            user_type: formData.user_type // Send user type to backend
         })
         .then(response => {
             console.log('Signup response:', response.data);
@@ -54,7 +56,8 @@ function Signup() {
             // Store only non-sensitive user info
             localStorage.setItem('user', JSON.stringify({
                 username: formData.username,
-                email: formData.email
+                email: formData.email,
+                user_type: formData.user_type // Also store user type in local storage
             }));
             
             setShowSuccessModal(true); // show modal
@@ -88,6 +91,9 @@ function Signup() {
             email: 'Email',
             password: 'Password',
             confirmPassword: 'Confirm Password',
+            userType: 'User Type',
+            student: 'Student',
+            teacher: 'Teacher',
             button: 'Sign Up',
             passwordMismatch: 'Passwords do not match',
             emptyFields: 'Please fill in all fields',
@@ -108,6 +114,9 @@ function Signup() {
             email: 'البريد الإلكتروني',
             password: 'كلمة المرور',
             confirmPassword: 'تأكيد كلمة المرور',
+            userType: 'نوع المستخدم',
+            student: 'طالب',
+            teacher: 'معلم',
             button: 'تسجيل',
             passwordMismatch: 'كلمتا المرور غير متطابقتين',
             emptyFields: 'يرجى ملء جميع الحقول',
@@ -128,7 +137,7 @@ function Signup() {
         <>
             <Header />
             {showSuccessModal && (
-                <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex justify-center items-center z-50">
+                <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex justify-center items-center z-50 ">
                     <div className="bg-white p-6 rounded-lg shadow-lg text-center">
                         <h2 className="text-2xl font-semibold text-green-600 mb-2">
                             {texts[language].success}
@@ -140,11 +149,11 @@ function Signup() {
                 </div>
             )}
 
-            <div className="flex items-center justify-center min-h-screen bg-gray-50 h-180">
+            <div className="flex items-center justify-center min-h-screen bg-gray-50 h-200">
                 <form
                     onSubmit={handleSubmit}
                     dir={language === 'ar' ? 'rtl' : 'ltr'}
-                    className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md space-y-4"
+                    className="bg-white mt-20 p-8 rounded-2xl shadow-lg w-full max-w-md space-y-4"
                 >
                     <h2 className="text-2xl font-semibold text-center mb-4">
                         {texts[language].title}
@@ -200,6 +209,35 @@ function Signup() {
                             required
                             className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${error ? 'border-red-500 focus:ring-red-400' : 'focus:ring-blue-400'}`}
                         />
+                    </div>
+
+                    {/* User Type Selection */}
+                    <div>
+                        <label className="block mb-1 text-sm font-medium">{texts[language].userType}</label>
+                        <div className="flex gap-4 mt-2">
+                            <label className="flex items-center">
+                                <input
+                                    type="radio"
+                                    name="user_type"
+                                    value="student"
+                                    checked={formData.user_type === 'student'}
+                                    onChange={handleChange}
+                                    className="mr-2"
+                                />
+                                <span>{texts[language].student}</span>
+                            </label>
+                            <label className="flex items-center">
+                                <input
+                                    type="radio"
+                                    name="user_type"
+                                    value="teacher"
+                                    checked={formData.user_type === 'teacher'}
+                                    onChange={handleChange}
+                                    className="mr-2"
+                                />
+                                <span>{texts[language].teacher}</span>
+                            </label>
+                        </div>
                     </div>
 
                     {error && (

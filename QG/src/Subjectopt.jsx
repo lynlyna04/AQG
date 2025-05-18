@@ -211,7 +211,34 @@ function Subjectopt() {
     setTimeout(() => {
     setIsLoading(false);
     setShowPreview(true);
-  }, 1500);
+    }, 1500);
+      
+      
+      
+    const history = JSON.parse(localStorage.getItem("subjectHistory") || "[]");
+
+    const newEntry = {
+      title: previewText.substring(0, 50), // Shortened preview as title
+      timestamp: new Date().toISOString(),
+      data: {
+        previewText,
+        subjectOptions,
+        totalQuestions,
+        // Add any other needed states
+        parsedWords,
+        parsedSyno,
+        parsedAntonyms,
+        i3rabWords,
+        parsedTaleelWords,
+        parsedVerbs,
+        parsedPronouns,
+        verbTense,
+        writtenExpression,
+      }
+    };
+    
+    localStorage.setItem("subjectHistory", JSON.stringify([newEntry, ...history]));
+       
 };
 
   
