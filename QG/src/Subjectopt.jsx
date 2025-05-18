@@ -215,32 +215,35 @@ function Subjectopt() {
       
       
       
-    const history = JSON.parse(localStorage.getItem("subjectHistory") || "[]");
+    const user = JSON.parse(localStorage.getItem("user")); 
+if (!user || !user.username) return; // prevent crash if not logged in
 
-    const newEntry = {
-      title: previewText.substring(0, 50), // Shortened preview as title
-      timestamp: new Date().toISOString(),
-      data: {
-        previewText,
-        subjectOptions,
-        totalQuestions,
-        // Add any other needed states
-        parsedWords,
-        parsedSyno,
-        parsedAntonyms,
-        i3rabWords,
-        parsedTaleelWords,
-        parsedVerbs,
-        parsedPronouns,
-        verbTense,
-        writtenExpression,
-      }
-    };
-    
-    localStorage.setItem("subjectHistory", JSON.stringify([newEntry, ...history]));
-       
+const historyKey = `subjectHistory_${user.username}`;
+const history = JSON.parse(localStorage.getItem(historyKey) || "[]");
+
+const newEntry = {
+  title: previewText.substring(0, 50),
+  timestamp: new Date().toISOString(),
+  data: {
+    previewText,
+    subjectOptions,
+    totalQuestions,
+    parsedWords,
+    parsedSyno,
+    parsedAntonyms,
+    i3rabWords,
+    parsedTaleelWords,
+    parsedVerbs,
+    parsedPronouns,
+    verbTense,
+    writtenExpression,
+  }
 };
 
+localStorage.setItem(historyKey, JSON.stringify([newEntry, ...history]));
+
+    
+}
   
     
   const downloadPdf = async () => {
