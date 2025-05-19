@@ -40,10 +40,15 @@ function Login() {
         })
         .then(response => {
             console.log(response.data);
-            const { username, email } = response.data; // Username is retrieved from the server
-            
-            // Store only non-sensitive user info
-            localStorage.setItem('user', JSON.stringify({ username, email }));
+            const { username, email, user_type } = response.data; // match backend naming
+
+localStorage.setItem('user', JSON.stringify({
+    username,
+    email,
+    user_type // snake_case, consistent with signup
+}));
+
+
     
             // Show success modal
             setShowSuccessModal(true);
