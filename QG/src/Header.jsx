@@ -175,7 +175,7 @@ function Header() {
               onClick={handleGetStartedClick}
               className="cursor-pointer px-4 py-2 rounded transition-all duration-300 hover:bg-[#FFEF9D] hover:text-black"
             >
-              {language === 'en' ? 'Generate Q' : 'أنشئ'}
+              {language === 'en' ? 'Generate Questions' : 'أنشئ'}
             </a>
             <a
               onClick={handleGetStarted}
@@ -188,7 +188,7 @@ function Header() {
 
         {/* Logo */}
         <div className={`${language === 'en' ? 'order-1' : 'order-2'}`}>
-          <img src="./Group 78.png" alt="logo" className="h-10" />
+          <img src="./logooo.png" alt="logo" className="h-25" />
         </div>
       </nav>
     </header>

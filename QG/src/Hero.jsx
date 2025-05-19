@@ -28,9 +28,9 @@ function Hero() {
       <div className={`w-1/2 mb-10 w-170 px-5 py-40 ml-5 ${language === 'ar' ? 'text-right' : 'text-left'}`} dir={language === 'ar' ? 'rtl' : 'ltr'}>
         <h1 className="text-[48px] font-semibold mb-6 leading-snug">
           {language === 'en' ? (
-            <>Welcome to <span className="text-[#FFB3B3] text-opacity-100">"My Quizzer"</span><br />Arabic Learning Made Easy for Kids & Teachers</>
+            <>Welcome to <span className="text-[#FFB3B3] text-opacity-100">"Taqyeem"</span><br />Arabic Learning Made Easy for Kids & Teachers</>
           ) : (
-            <>مرحبًا بك في <span className="text-[#FFB3B3] text-opacity-100">"ماي كويزر"</span><br />التعلم العربي أصبح سهلاً للطلاب والمعلمين</>
+            <>مرحبًا بك في <span className="text-[#FFB3B3] text-opacity-100">"Taqyeem"</span><br />التعلم العربي أصبح سهلاً للطلاب والمعلمين</>
           )}
         </h1>
 
@@ -38,7 +38,7 @@ function Hero() {
 
         <p className="text-[22px] font-semibold w-140 mb-5">
           {language === 'en'
-            ? 'A quiz generator for elementary school students and a helpful tool for teachers to create subjects with ready-to-use templates.'
+            ? 'A question generator for elementary school students and a helpful tool for teachers to create subjects with ready-to-use templates.'
             : 'مولد أسئلة لطلاب المرحلة الابتدائية، وأداة مفيدة للمعلمين لإنشاء مواضيع باستخدام قوالب جاهزة.'}
         </p>
 

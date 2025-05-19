@@ -212,7 +212,7 @@ function Body() {
   <div className="space-y-6" dir={language === 'ar' ? 'rtl' : 'ltr'}>
     {[
       {
-        question: language === 'ar' ? 'ما هو My Quizzer؟' : 'What is My Quizzer?',
+        question: language === 'ar' ? 'ما هو Taqyeem؟' : 'What is Taqyeem?',
         answer: language === 'ar'
           ? 'هو أداة ذكية تولّد أسئلة ومواضيع تعليمية باللغة العربية لمساعدتك في التدريس والتعلم.'
           : 'It’s a smart tool that generates Arabic questions and subject ideas to help with teaching and learning.'
