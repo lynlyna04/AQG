@@ -43,16 +43,6 @@ function Subjectopt() {
   const [geminiMinLines, setGeminiMinLines] = useState(8);
   const [geminiMaxLines, setGeminiMaxLines] = useState(10);
   
-
-  
-  const handleChange = (event) => {
-    setUserInputWords(event.target.value);
-  };
-
-  // Handler for i3rab input changes
-  const handleI3rabInputChange = (event) => {
-    setI3rabInput(event.target.value);
-  };
   
   function handleParseWords() {
     const words = userInputWords
@@ -358,7 +348,127 @@ localStorage.setItem(historyKey, JSON.stringify([newEntry, ...history]));
     }
   };
   
+    
+    
+  const [allTextWords, setAllTextWords] = useState([]);
+  const [showWordSelector, setShowWordSelector] = useState(false);
   
+  // Add this function to extract unique words from the preview text
+  useEffect(() => {
+    if (previewText) {
+      // Extract all unique words from the text
+      const words = previewText
+        .replace(/[.,،:;'"!؟?()[\]{}]/g, ' ') // Remove punctuation
+        .split(/\s+/) // Split by whitespace
+        .filter(word => word.trim() !== '') // Remove empty strings
+        .filter((word, index, self) => self.indexOf(word) === index); // Remove duplicates
+      
+      setAllTextWords(words);
+    }
+  }, [previewText]);
+    
+    // Add this function to handle word selection
+const handleWordSelection = (word) => {
+    // Check if the word is already selected
+    if (i3rabWords.includes(word)) {
+      // Remove the word if already selected
+      setI3rabWords(i3rabWords.filter(w => w !== word));
+    } else {
+      // Add the word if not already selected
+      setI3rabWords([...i3rabWords, word]);
+    }
+  };
+  
+    
+  const [showSynoWordSelector, setShowSynoWordSelector] = useState(false);
+  const [showAntonymWordSelector, setShowAntonymWordSelector] = useState(false);
+  
+  // 2. Add these handler functions to select words for synonyms and antonyms
+  // Add them similar to your existing handleWordSelection function:
+  
+  // Handler for synonym word selection
+  const handleSynoWordSelection = (word) => {
+    // Check if the word is already selected
+    const currentSyno = parsedSyno.length > 0 ? parsedSyno : [];
+    if (currentSyno.includes(word)) {
+      // Remove the word if already selected
+      setParsedSyno(currentSyno.filter(w => w !== word));
+    } else {
+      // Add the word if not already selected
+      setParsedSyno([...currentSyno, word]);
+    }
+    // Update the input field with the new selection
+    setUserSynoWords(currentSyno.length > 0 
+      ? [...currentSyno.filter(w => w !== word), word].join('، ') 
+      : word);
+  };
+  
+  // Handler for antonym word selection
+  const handleAntonymWordSelection = (word) => {
+    // Check if the word is already selected
+    const currentAntonyms = parsedAntonyms.length > 0 ? parsedAntonyms : [];
+    if (currentAntonyms.includes(word)) {
+      // Remove the word if already selected
+      setParsedAntonyms(currentAntonyms.filter(w => w !== word));
+    } else {
+      // Add the word if not already selected
+      setParsedAntonyms([...currentAntonyms, word]);
+    }
+    // Update the input field with the new selection
+    setAntonymsInput(currentAntonyms.length > 0 
+      ? [...currentAntonyms.filter(w => w !== word), word].join('، ') 
+      : word);
+  };
+  
+    
+    
+  const [extractionCategories, setExtractionCategories] = useState([
+    {
+      id: 'grammar',
+      name: 'قواعد نحوية',
+      items: [
+        'فعل ماض', 'فعل مضارع', 'فعل أمر', 'جملة اسمية', 'جملة فعلية', 
+        'مبتدأ', 'خبر', 'فاعل', 'مفعول به', 'نعت', 'مضاف إليه',
+        'اسم إشارة', 'اسم موصول', 'ضمير متصل', 'ضمير منفصل'
+      ]
+    },
+    {
+      id: 'style',
+      name: 'أساليب لغوية',
+      items: [
+        'أسلوب استفهام', 'أسلوب نداء', 'أسلوب تعجب', 'أسلوب نهي', 'أسلوب أمر',
+        'أسلوب شرط', 'تشبيه', 'استعارة', 'كناية'
+      ]
+    },
+    {
+      id: 'other',
+      name: 'عناصر أخرى',
+      items: [
+        'حرف جر', 'حرف عطف', 'مصدر', 'اسم فاعل', 'اسم مفعول', 'صيغة مبالغة',
+        'توكيد', 'حال', 'تمييز', 'بدل'
+      ]
+    }
+  ]);
+  
+  const [showExtractionSelector, setShowExtractionSelector] = useState(false);
+  
+  // Step 2: Add this handler function
+  const handleExtractionItemSelection = (item) => {
+    if (parsedWords.includes(item)) {
+      // Remove the item if already selected
+      setUserInputWords(
+        parsedWords
+          .filter(word => word !== item)
+          .join('، ')
+      );
+      setParsedWords(parsedWords.filter(word => word !== item));
+    } else {
+      // Add the item if not already selected
+      const newWords = [...parsedWords, item];
+      setUserInputWords(newWords.join('، '));
+      setParsedWords(newWords);
+    }
+  };
 
   return (
     <>
@@ -403,50 +513,172 @@ localStorage.setItem(historyKey, JSON.stringify([newEntry, ...history]));
               </div>
 
               {/* Number of Synonyms */}
-              <div className="flex items-center mb-6 gap-2">
-                <p className="text-gray-800 w-35">
-                  {language === "ar" ? "أدخل المرادفات:" : "Give synonyms:"}
-                </p>
-                <input
-                  type="text"
-                  placeholder={language === "ar" ? "افصل بين الكلمات بفواصل" : "Enter synonyms separated by commas"}
-                  className="flex-grow border border-gray-400 rounded px-2 py-1 text-sm"
-                  value={synoWords}
-                  onChange={(e) => setUserSynoWords(e.target.value)}
-                />
-              </div>
+<div className="flex items-center mb-6 gap-2">
+  <p className="text-gray-800 w-35">
+    {language === "ar" ? "أدخل المرادفات:" : "Give synonyms:"}
+  </p>
+  <div className="flex flex-grow gap-2">
+    <button
+      type="button"
+      onClick={() => setShowSynoWordSelector(!showSynoWordSelector)}
+      className="bg-gray-200 text-gray-800 px-3 py-1 rounded hover:bg-gray-300"
+    >
+      {language === "ar" ? "اختيار من النص" : "Select"}
+    </button>
+  </div>
+</div>
+
+{/* Synonyms Word selector modal/dropdown */}
+{showSynoWordSelector && (
+  <div className="mb-6 border border-gray-300 rounded p-3">
+    <div className="flex justify-between mb-2">
+      <h4 className="font-semibold">{language === "ar" ? "اختر الكلمات للمرادفات:" : "Select words for synonyms:"}</h4>
+      <button 
+        onClick={() => setShowSynoWordSelector(false)}
+        className="text-gray-600 hover:text-gray-800"
+      >
+        ✕
+      </button>
+    </div>
+    <div className="max-h-40 overflow-y-auto p-2 bg-gray-50 rounded">
+      <div className="flex flex-wrap gap-2">
+        {allTextWords.map((word, index) => (
+          <button
+            key={index}
+            onClick={() => handleSynoWordSelection(word)}
+            className={`px-2 py-1 rounded text-sm ${
+              parsedSyno.includes(word) 
+                ? 'bg-[#FFB3B3] text-gray-800' 
+                : 'bg-gray-200 text-gray-700'
+            } hover:bg-gray-300`}
+          >
+            {word}
+          </button>
+        ))}
+      </div>
+    </div>
+    <div className="mt-3">
+      <p className="text-sm text-gray-600">
+        {language === "ar" 
+          ? `الكلمات المحددة: ${parsedSyno.length}`
+          : `Selected words: ${parsedSyno.length}`}
+      </p>
+    </div>
+  </div>
+)}
 
               {/* Antonyms Input */}
-              <div className="flex items-center mb-6 gap-2">
-                <p className="text-gray-800 w-35">
-                  {language === "ar" ? "أدخل الأضداد:" : "Enter antonyms:"}
-                </p>
-                <input
-                  type="text"
-                  className="flex-grow border border-gray-400 rounded px-2 py-1 text-sm"
-                  placeholder={language === "ar" ? "افصل بين الكلمات بفواصل" : "Separate with commas"}
-                  value={antonymsInput}
-                  onChange={(e) => setAntonymsInput(e.target.value)}
-                />
-              </div>
+<div className="flex items-center mb-6 gap-2">
+  <p className="text-gray-800 w-35">
+    {language === "ar" ? "أدخل الأضداد:" : "Enter antonyms:"}
+  </p>
+  <div className="flex flex-grow gap-2">
+    <button
+      type="button"
+      onClick={() => setShowAntonymWordSelector(!showAntonymWordSelector)}
+      className="bg-gray-200 text-gray-800 px-3 py-1 rounded hover:bg-gray-300"
+    >
+      {language === "ar" ? "اختيار من النص" : "Select"}
+    </button>
+  </div>
+</div>
+
+{/* Antonyms Word selector modal/dropdown */}
+{showAntonymWordSelector && (
+  <div className="mb-6 border border-gray-300 rounded p-3">
+    <div className="flex justify-between mb-2">
+      <h4 className="font-semibold">{language === "ar" ? "اختر الكلمات للأضداد:" : "Select words for antonyms:"}</h4>
+      <button 
+        onClick={() => setShowAntonymWordSelector(false)}
+        className="text-gray-600 hover:text-gray-800"
+      >
+        ✕
+      </button>
+    </div>
+    <div className="max-h-40 overflow-y-auto p-2 bg-gray-50 rounded">
+      <div className="flex flex-wrap gap-2">
+        {allTextWords.map((word, index) => (
+          <button
+            key={index}
+            onClick={() => handleAntonymWordSelection(word)}
+            className={`px-2 py-1 rounded text-sm ${
+              parsedAntonyms.includes(word) 
+                ? 'bg-[#FFB3B3] text-gray-800' 
+                : 'bg-gray-200 text-gray-700'
+            } hover:bg-gray-300`}
+          >
+            {word}
+          </button>
+        ))}
+      </div>
+    </div>
+    <div className="mt-3">
+      <p className="text-sm text-gray-600">
+        {language === "ar" 
+          ? `الكلمات المحددة: ${parsedAntonyms.length}`
+          : `Selected words: ${parsedAntonyms.length}`}
+      </p>
+    </div>
+  </div>
+)}
 
               <h3 className="text-lg font-bold text-gray-900 mb-4">
                 {language === "ar" ? "القواعد" : "Grammar"}
               </h3>
+              {/* I3rab Input Field */}
+<div className="flex items-center gap-2 mb-6">
+  <p className="text-gray-800 w-35">
+    {language === "ar" ? "أدخل كلمات الإعراب:" : "Enter i3rab words:"}
+  </p>
+  <div className="flex flex-grow gap-2">
+    <button
+      type="button"
+      onClick={() => setShowWordSelector(!showWordSelector)}
+      className="bg-gray-200 text-gray-800 px-3 py-1 rounded hover:bg-gray-300"
+    >
+      {language === "ar" ? "اختيار من النص" : "Select from text"}
+    </button>
+  </div>
+</div>
 
-              {/* I3rab Input Field - New field for i3rab words */}
-              <div className="flex items-center gap-2 mb-6">
-                <p className="text-gray-800 w-35">
-                  {language === "ar" ? "أدخل كلمات الإعراب:" : "Enter i3rab words:"}
-                </p>
-                <input
-                  type="text"
-                  className="flex-grow border border-gray-400 rounded px-2 py-1 text-sm"
-                  placeholder={language === "ar" ? "افصل بين الكلمات بفواصل" : "Separate with commas"}
-                  value={i3rabInput}
-                  onChange={handleI3rabInputChange}
-                />
-              </div>
+{/* Word selector modal/dropdown */}
+{showWordSelector && (
+  <div className="mb-6 border border-gray-300 rounded p-3">
+    <div className="flex justify-between mb-2">
+      <h4 className="font-semibold">{language === "ar" ? "اختر الكلمات من النص:" : "Select words from text:"}</h4>
+      <button 
+        onClick={() => setShowWordSelector(false)}
+        className="text-gray-600 hover:text-gray-800"
+      >
+        ✕
+      </button>
+    </div>
+    <div className="max-h-40 overflow-y-auto p-2 bg-gray-50 rounded">
+      <div className="flex flex-wrap gap-2">
+        {allTextWords.map((word, index) => (
+          <button
+            key={index}
+            onClick={() => handleWordSelection(word)}
+            className={`px-2 py-1 rounded text-sm ${
+              i3rabWords.includes(word) 
+                ? 'bg-[#FFB3B3] text-gray-800' 
+                : 'bg-gray-200 text-gray-700'
+            } hover:bg-gray-300`}
+          >
+            {word}
+          </button>
+        ))}
+      </div>
+    </div>
+    <div className="mt-3">
+      <p className="text-sm text-gray-600">
+        {language === "ar" 
+          ? `الكلمات المحددة: ${i3rabWords.length}`
+          : `Selected words: ${i3rabWords.length}`}
+      </p>
+    </div>
+  </div>
+)}
               
               {/* تعليل (Grammatical reasoning) section */}
               <div className="flex items-center mb-6 gap-2">
@@ -510,19 +742,70 @@ localStorage.setItem(historyKey, JSON.stringify([newEntry, ...history]));
                 />
               </div>
 
-              {/* Extract Words Input Field */}
-                <div className="flex items-center gap-2 mb-6">
-                <p className="text-gray-800 w-35">
-                  {language === "ar" ? "أدخل كلمات للاستخراج :" : "Enter extraction words:"}
-                </p>
-                <textarea
-                  className="flex-grow border border-gray-300 p-2 rounded text-sm"
-                  rows="2"
-                  placeholder={language === "ar" ? "أدخل الكلمات مفصولة بفواصل" : "Enter words separated by commas"}
-                  value={userInputWords}
-                  onChange={handleChange}
-                />
-              </div>
+              <div className="flex items-center gap-2 mb-6">
+  <p className="text-gray-800 w-35">
+    {language === "ar" ? "عناصر للاستخراج:" : "Extraction items:"}
+  </p>
+  <div className="flex flex-grow gap-2">
+    <button
+      type="button"
+      onClick={() => setShowExtractionSelector(!showExtractionSelector)}
+      className="bg-gray-200 text-gray-800 px-3 py-1 rounded hover:bg-gray-300"
+    >
+      {language === "ar" ? "اختيار العناصر" : "Select items"}
+    </button>
+  </div>
+</div>
+
+{/* Extraction items selector */}
+{showExtractionSelector && (
+  <div className="mb-6 border border-gray-300 rounded p-3">
+    <div className="flex justify-between mb-2">
+      <h4 className="font-semibold">{language === "ar" ? "اختر عناصر للاستخراج:" : "Select items for extraction:"}</h4>
+      <button 
+        onClick={() => setShowExtractionSelector(false)}
+        className="text-gray-600 hover:text-gray-800"
+      >
+        ✕
+      </button>
+    </div>
+    
+    {extractionCategories.map(category => (
+      <div key={category.id} className="mb-3">
+        <h5 className="font-medium text-gray-700 mb-1">{category.name}</h5>
+        <div className="flex flex-wrap gap-2 p-2 bg-gray-50 rounded">
+          {category.items.map((item, index) => (
+            <button
+              key={index}
+              onClick={() => handleExtractionItemSelection(item)}
+              className={`px-2 py-1 rounded text-sm ${
+                parsedWords.includes(item) 
+                  ? 'bg-[#FFB3B3] text-gray-800' 
+                  : 'bg-gray-200 text-gray-700'
+              } hover:bg-gray-300`}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+      </div>
+    ))}
+    
+    <div className="mt-3">
+      <p className="text-sm text-gray-600">
+        {language === "ar" 
+          ? `العناصر المحددة: ${parsedWords.length}`
+          : `Selected items: ${parsedWords.length}`}
+      </p>
+      {parsedWords.length > 0 && (
+        <div className="mt-2 p-2 bg-gray-100 rounded">
+          <p className="text-sm font-medium">{language === "ar" ? "العناصر المحددة:" : "Selected items:"}</p>
+          <p className="text-sm">{parsedWords.join('، ')}</p>
+        </div>
+      )}
+    </div>
+  </div>
+)}
               
               {/* Verb Conjugation Section */}
               <h3 className="text-lg font-bold text-gray-900 mb-4">
@@ -672,26 +955,43 @@ localStorage.setItem(historyKey, JSON.stringify([newEntry, ...history]));
                 
                 <h3 className="font-bold text-lg mt-6 mb-2">البناء الفكري:</h3>
                 <ol className="list-decimal mr-6 text-lg text-gray-700 px-4 space-y-2">
-                  <li>اعط عنوان للنص.</li>
-                  <li>
-                    اجب على الاسئلة التالية:
-                    <ul className="list-disc mr-6 mt-1 pl-5">
-                      {subjectOptions.slice(0, qCount).map((opt, index) => (
-                        <li key={index}>{opt}</li>
-                      ))}
-                    </ul>
-                  </li>
-                  {parsedSyno.length > 0 && (
-                    <li>
-                      {`أعط مرادفات الكلمات التالية و وظفها في جملة مفيدة: ${parsedSyno.join("، ")}`}
-                    </li>
-                  )}
-                  {parsedAntonyms.length > 0 && (
-                    <li>
-                      {`أعط الأضداد الكلمات التالية و وظفها في جملة مفيدة : ${parsedAntonyms.join("، ")}`}
-                    </li>
-                  )}
-                </ol>
+  <li>
+    اعط عنوان للنص.
+    <p className="text-gray-400">........................................................................</p>
+  </li>
+
+  <li>
+    اجب على الاسئلة التالية:
+    <ul className="list-disc mr-6 mt-1 pl-5 space-y-2">
+      {subjectOptions.slice(0, qCount).map((opt, index) => (
+        <li key={index}>
+          {opt}
+          <p className="text-gray-400">........................................................................</p>
+        </li>
+      ))}
+    </ul>
+  </li>
+
+  {parsedSyno.length > 0 && (
+    <li>
+      {`أعط مرادفات الكلمات التالية و وظفها في جملة مفيدة: ${parsedSyno.join("، ")}`}
+      <p className="text-gray-400">........................................................................</p>
+    </li>
+  )}
+
+  {parsedAntonyms.length > 0 && (
+    <li>
+      {`أعط الأضداد الكلمات التالية و وظفها في جملة مفيدة : ${parsedAntonyms.join("، ")}`}
+      <p className="text-gray-400">........................................................................</p>
+    </li>
+                                      )}
+                                      
+    <li>
+    ما هي العبرة من النص؟
+    <p className="text-gray-400">........................................................................</p>
+  </li>
+</ol>
+
 
                 <h3 className="font-bold text-lg mt-6 mb-2">البناء اللغوي:</h3>
 

@@ -91,13 +91,13 @@ function Generate() {
               {language === 'ar' ? 'أدخل النص العربي' : 'Enter your Arabic text'}
             </h3>
           </div>
-          <div className="bg-white p-4 h-[150px]">
+          <div className="bg-white p-4 h-[150px] text-right">
             <textarea
               className="w-full h-full text-gray-800 leading-6 p-2 rounded"
               placeholder={language === 'ar' ? 'أدخل النص هنا' : 'Enter your text here'}
               value={inputText}
               onChange={handleInputChange}
-              dir={language === 'ar' ? 'rtl' : 'ltr'}
+              dir='rtl'
             />
           </div>
         </div>
@@ -115,7 +115,7 @@ function Generate() {
         {language === 'ar' ? 'جارٍ إنشاء الأسئلة...' : 'Generating questions...'}
       </p>
     ) : (
-      <ol className="text-gray-800 leading-6 list-decimal pl-5" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+      <ol className="text-gray-800 leading-6 list-decimal pl-5" dir='rtl'>
         {outputText.split("\n").map((question, index) => (
           <li key={index}>{question}</li>
         ))}
