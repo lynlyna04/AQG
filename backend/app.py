@@ -331,6 +331,41 @@ def generate_integration_instruction():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
+#verbs
+@app.route("/extract-verbs", methods=["POST"])
+def extract_verbs():
+    data = request.json
+    text = data.get("text", "")
+    api_key = data.get("api_key", "")
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+    
+    prompt = (
+    f"أنت أداة معالجة لغوية عربية. استخرج فقط الأفعال من النص التالي بصيغة المصدر أو الجذر (مثل: يكتب، نقرأ، نفهم، تعمل، يساعد). "
+    f"تأكد أن تكون الكلمة فعلًا حقيقيًا فقط، وليست اسمًا مثل 'القراءة' أو 'التعبير' أو أي كلمة تبدأ بـ 'ال'. "
+    f"يُمنع منعًا باتًا تضمين الكلمات التي تبدأ بـ 'ال'.\n\n"
+    f"{text}\n\n"
+    "أعطني فقط قائمة مفصولة بفواصل بالأفعال الصحيحة، بدون أي شرح إضافي أو رموز أخرى."
+)
+
+
+
+    headers = {"Content-Type": "application/json"}
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}]
+    }
+
+    response = requests.post(url, headers=headers, data=json.dumps(payload))
+
+    if response.status_code == 200:
+        try:
+            verbs = response.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+            return jsonify({"verbs": verbs})
+        except Exception as e:
+            return jsonify({"error": f"Unexpected response format: {e}"}), 500
+    else:
+        return jsonify({"error": f"Gemini API error: {response.status_code}"}), 500
+
 # PDF generation route - Changed to a different route name
 @app.route('/generate-pdf', methods=['POST'])
 def generate_pdf():

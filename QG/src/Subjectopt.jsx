@@ -34,7 +34,6 @@ function Subjectopt() {
   // New states for verb conjugation (تصريف الأفعال)
   const [verbInput, setVerbInput] = useState("");
   const [parsedVerbs, setParsedVerbs] = useState([]);
-  const [pronounsInput, setPronounsInput] = useState("أنا, أنتَ, أنتِ, هو, هي, نحن, أنتم, أنتن, هم, هن");
   const [parsedPronouns, setParsedPronouns] = useState([]);
   const [verbTense, setVerbTense] = useState("الماضي");
 
@@ -121,18 +120,7 @@ function Subjectopt() {
     setTaleelWords(event.target.value);
   };
   
-  // Handlers for verb conjugation inputs
-  const handleVerbInputChange = (event) => {
-    setVerbInput(event.target.value);
-  };
-  
-  const handlePronounsInputChange = (event) => {
-    setPronounsInput(event.target.value);
-  };
-  
-  const handleVerbTenseChange = (event) => {
-    setVerbTense(event.target.value);
-  };
+
 
   const handleWrittenExpression = async () => {
   if (!userInputWords.trim() || geminiConstraints.length === 0) {
@@ -470,6 +458,98 @@ const handleWordSelection = (word) => {
     }
   };
 
+    
+  const [showVerbSelector, setShowVerbSelector] = useState(false);
+  const [allExtractedVerbs, setAllExtractedVerbs] = useState([]); // from Gemini
+  const [selectedVerbs, setSelectedVerbs] = useState([]); // for conjugation
+  
+
+// 2. Modify the extractInfinitiveVerbs function to update and use the state properly
+const extractInfinitiveVerbs = async () => {
+    if (!previewText.trim()) {
+      alert("النص فارغ!");
+      return;
+    }
+  
+    try {
+      setIsLoading(true);
+  
+      const res = await fetch("http://localhost:5000/extract-verbs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: previewText,
+          api_key: "AIzaSyAf33OMbH4JU7PhK48GgjK3rZLxJR3K6Qg",
+        }),
+      });
+  
+      const result = await res.json();
+      console.log("Raw API result:", result);
+  
+      let verbList = [];
+  
+      if (Array.isArray(result.verbs)) {
+        verbList = result.verbs; // already a list ✅
+      } else if (typeof result.verbs === "string") {
+        // Remove brackets, quotes and split correctly
+        const cleaned = result.verbs.replace(/[\[\]'"]+/g, "").trim();
+        verbList = cleaned.split(/[,\،]/).map(v => v.trim()).filter(Boolean);
+      }
+  
+      if (verbList.length === 0) {
+        alert("لم يتم العثور على أفعال.");
+        return;
+      }
+  
+      setAllExtractedVerbs(verbList);
+      setShowVerbSelector(true);
+    } catch (error) {
+      console.error("Error extracting verbs:", error);
+      alert("فشل في استخراج الأفعال.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+   // Function to handle verb selection
+   const handleVerbSelection = (verb) => {
+    setSelectedVerbs(prevSelected => {
+      if (prevSelected.includes(verb)) {
+        // Remove verb if already selected
+        return prevSelected.filter(v => v !== verb);
+      } else {
+        // Add verb if not already selected
+        return [...prevSelected, verb];
+      }
+    });
+  };
+  const [pronounsInput, setPronounsInput] = useState("");
+  
+  // New states for tense and pronoun type
+  const [selectedTense, setSelectedTense] = useState("present");
+  const [selectedPronounType, setSelectedPronounType] = useState("all");
+  // Function to handle changes to pronoun input
+  const handlePronounsInputChange = (e) => {
+    setPronounsInput(e.target.value);
+  };
+
+  // Function to handle pronoun type selection
+  const handlePronounTypeChange = (e) => {
+    const newType = e.target.value;
+    setSelectedPronounType(newType);
+    
+    // Update the pronouns input based on type
+    if (newType !== "all") {
+      setPronounsInput(defaultPronouns[newType]);
+    } else {
+      setPronounsInput(defaultPronouns.all);
+    }
+  };
+
+  // Calculate the number of selected words
+    const selectedWordsCount = selectedVerbs.length;
+    
+
   return (
     <>
       <Header />
@@ -512,7 +592,7 @@ const handleWordSelection = (word) => {
                 </select>
               </div>
 
-              {/* Number of Synonyms */}
+            {/* Number of Synonyms */}
 <div className="flex items-center mb-6 gap-2">
   <p className="text-gray-800 w-35">
     {language === "ar" ? "أدخل المرادفات:" : "Give synonyms:"}
@@ -807,54 +887,110 @@ const handleWordSelection = (word) => {
   </div>
 )}
               
-              {/* Verb Conjugation Section */}
-              <h3 className="text-lg font-bold text-gray-900 mb-4">
-                {language === "ar" ? "تصريف الأفعال" : "Verb Conjugation"}
-              </h3>
-              
-              {/* Verb tense selector */}
-              <div className="flex items-center mb-6 gap-2">
-                <p className="text-gray-800 w-35">
-                  {language === "ar" ? "زمن الفعل:" : "Verb tense:"}
-                </p>
-                <select
-                  className="border border-gray-400 rounded px-2 py-1"
-                  value={verbTense}
-                  onChange={handleVerbTenseChange}
+               {/* Verb Conjugation Section */}
+      <h3 className="text-lg font-bold text-gray-900 mb-4">
+        {language === "ar" ? "تصريف الأفعال" : "Verb Conjugation"}
+      </h3>
+
+      {/* Tense Selector */}
+      <div className="flex items-center mb-6 gap-2">
+        <p className="text-gray-800 w-35">
+          {language === "ar" ? "اختر الزمن:" : "Select tense:"}
+        </p>
+        <div className="flex flex-grow gap-2">
+          <select
+            value={selectedTense}
+            onChange={(e) => setSelectedTense(e.target.value)}
+            className="flex-grow border border-gray-300 p-2 rounded text-sm"
+          >
+            <option value="past">{language === "ar" ? "الماضي" : "Past"}</option>
+            <option value="present">{language === "ar" ? "المضارع" : "Present"}</option>
+            <option value="future">{language === "ar" ? "المستقبل" : "Future"}</option>
+            <option value="imperative">{language === "ar" ? "الأمر" : "Imperative"}</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Pronoun Type Selector */}
+      <div className="flex items-center mb-6 gap-2">
+        <p className="text-gray-800 w-35">
+          {language === "ar" ? "نوع الضمير:" : "Pronoun type:"}
+        </p>
+        <div className="flex flex-grow gap-2">
+          <select
+            value={selectedPronounType}
+            onChange={handlePronounTypeChange}
+            className="flex-grow border border-gray-300 p-2 rounded text-sm"
+          >
+            <option value="all">{language === "ar" ? "جميع الضمائر" : "All pronouns"}</option>
+            <option value="متكلم">{language === "ar" ? "ضمائر المتكلم" : "First person"}</option>
+            <option value="مخاطب">{language === "ar" ? "ضمائر المخاطب" : "Second person"}</option>
+            <option value="غائب">{language === "ar" ? "ضمائر الغائب" : "Third person"}</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Verb selector open button */}
+      <div className="flex items-center gap-2 mb-6">
+        <p className="text-gray-800 w-35">
+          {language === "ar" ? "اختر الأفعال من النص:" : "Select verbs from text:"}
+        </p>
+        <div className="flex flex-grow gap-2">
+          <button
+            type="button"
+            onClick={extractInfinitiveVerbs}
+            className="bg-gray-200 text-gray-800 px-3 py-1 rounded hover:bg-gray-300"
+          >
+            {language === "ar" ? "اختيار من النص" : "Select from text"}
+          </button>
+        </div>
+      </div>
+
+      {/* Verb selector modal/dropdown */}
+      {showVerbSelector && (
+        <div className="mb-6 border border-gray-300 rounded p-3">
+          <div className="flex justify-between mb-2">
+            <h4 className="font-semibold">{language === "ar" ? "اختر الأفعال من النص:" : "Select verbs from text:"}</h4>
+            <button 
+              onClick={() => setShowVerbSelector(false)}
+              className="text-gray-600 hover:text-gray-800"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="max-h-40 overflow-y-auto p-2 bg-gray-50 rounded">
+            <div className="flex flex-wrap gap-2">
+              {allExtractedVerbs.map((verb, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleVerbSelection(verb)}
+                  style={{
+                    backgroundColor: selectedVerbs.includes(verb) ? '#FFB3B3' : '#e5e7eb',
+                    color: selectedVerbs.includes(verb) ? 'black' : '#374151',
+                    padding: '0.25rem 0.5rem',
+                    borderRadius: '0.25rem',
+                    fontSize: '0.875rem',
+                    lineHeight: '1.25rem'
+                  }}
                 >
-                  <option value="الماضي">الماضي</option>
-                  <option value="المضارع">المضارع</option>
-                  <option value="الأمر">الأمر</option>
-                </select>
-              </div>
+                  {verb}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="mt-3">
+            <p className="text-sm text-gray-600">
+              {language === "ar" 
+                ? `الكلمات المحددة: ${selectedWordsCount}`
+                : `Selected words: ${selectedWordsCount}`}
+            </p>
+          </div>
+        </div>
+      )}
               
-              {/* Verbs input */}
-              <div className="flex items-center mb-6 gap-2">
-                <p className="text-gray-800 w-35">
-                  {language === "ar" ? "أدخل الأفعال:" : "Enter verbs:"}
-                </p>
-                <input
-                  type="text"
-                  className="flex-grow border border-gray-400 rounded px-2 py-1 text-sm"
-                  placeholder={language === "ar" ? "افصل بين الأفعال بفواصل" : "Separate with commas"}
-                  value={verbInput}
-                  onChange={handleVerbInputChange}
-                />
-              </div>
+
               
-              {/* Pronouns input */}
-              <div className="flex items-center mb-6 gap-2">
-                <p className="text-gray-800 w-35">
-                  {language === "ar" ? "أدخل الضمائر:" : "Enter pronouns:"}
-                </p>
-                <textarea
-                  className="flex-grow border border-gray-300 p-2 rounded text-sm"
-                  rows="2"
-                  placeholder={language === "ar" ? "افصل بين الضمائر بفواصل" : "Enter pronouns separated by commas"}
-                  value={pronounsInput}
-                  onChange={handlePronounsInputChange}
-                />
-              </div>
+            
 
               <h3 className="text-lg font-bold text-gray-900 mb-4">
                 {language === "ar" ? "الوضعية الإدماجية" : "Written Expression"}
@@ -1060,33 +1196,93 @@ const handleWordSelection = (word) => {
                     </li>
                   )}
 
-                  {parsedVerbs.length > 0 && parsedPronouns.length > 0 && (
-                    <li>
-                      <h3 className="font-semibold text-lg mb-2">
-                        صرف الآتي في {verbTense}:
-                      </h3>
-                      <table className="w-full border border-gray-300 text-sm mt-2">
-                        <thead>
-                          <tr className="bg-gray-100">
-                            <th className="border px-2 py-1 text-right">الضمائر</th>
-                            {parsedVerbs.map((verb, index) => (
-                              <th className="border px-2 py-1 text-right" key={index}>{verb}</th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {parsedPronouns.map((pronoun, index) => (
-                            <tr key={index}>
-                              <td className="border px-2 py-1">{pronoun}</td>
-                              {parsedVerbs.map((_, verbIndex) => (
-                                <td className="border px-2 py-1" key={verbIndex}>...</td>
-                              ))}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </li>
-                  )}
+{selectedVerbs && selectedVerbs.length > 0 && (
+  <li>
+    <h3 className="font-semibold text-lg mb-2">
+      صرف الأفعال التالية في {selectedTense === "present" ? "المضارع" : 
+                              selectedTense === "past" ? "الماضي" : 
+                              selectedTense === "future" ? "المستقبل" : 
+                              selectedTense === "imperative" ? "الأمر" : selectedTense} 
+      {selectedPronounType !== "all" ? ` مع ضمائر ${selectedPronounType}` : ""}:
+    </h3>
+    <table className="w-full border border-gray-300 text-sm mt-2">
+      <thead>
+        <tr className="bg-gray-100">
+          <th className="border px-2 py-1 text-right">الضمائر</th>
+          {selectedVerbs.map((verb, index) => (
+            <th className="border px-2 py-1 text-right" key={index}>{verb}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+  {parsedPronouns.length > 0 ? (
+    (() => {
+      let rows = [];
+      let rowCount;
+      
+      // Set the number of rows based on pronoun type
+      if (selectedPronounType === "متكلم") {
+        rowCount = 2;
+      } else if (selectedPronounType === "مخاطب") {
+        rowCount = 5;
+      } else if (selectedPronounType === "غائب") {
+        rowCount = 5;
+      } else {
+        // For "all" option, show all pronouns (default)
+        rowCount = 12; // Total: 2 متكلم + 5 مخاطب + 5 غائب
+      }
+      
+      // Generate the rows with empty cells
+      for (let i = 0; i < rowCount; i++) {
+        // For each pronoun type, use appropriate pronouns based on index
+        let pronoun = "";
+        
+        if (selectedPronounType === "متكلم") {
+          // 2 pronouns for متكلم: أنا, نحن
+          const motakalimPronouns = ["أنا", "نحن"];
+          pronoun = motakalimPronouns[i] || "";
+        } else if (selectedPronounType === "مخاطب") {
+          // 5 pronouns for مخاطب: أنتَ, أنتِ, أنتما, أنتم, أنتن
+          const mokhatebPronouns = ["أنتَ", "أنتِ", "أنتما", "أنتم", "أنتن"];
+          pronoun = mokhatebPronouns[i] || "";
+        } else if (selectedPronounType === "غائب") {
+          // 5 pronouns for غائب: هو, هي, هما, هم, هن
+          const ghaibPronouns = ["هو", "هي", "هما", "هم", "هن"];
+          pronoun = ghaibPronouns[i] || "";
+        } else {
+          // All pronouns in order
+          const allPronouns = [
+            "أنا", "نحن",           // متكلم (2)
+            "أنتَ", "أنتِ", "أنتما", "أنتم", "أنتن", // مخاطب (5)
+            "هو", "هي", "هما", "هم", "هن"     // غائب (5)
+          ];
+          pronoun = allPronouns[i] || "";
+        }
+        
+        rows.push(
+          <tr key={i}>
+            <td className="border px-2 py-1">{pronoun}</td>
+            {selectedVerbs.map((_, verbIndex) => (
+              <td className="border px-2 py-1" key={verbIndex}>...</td>
+            ))}
+          </tr>
+        );
+      }
+      
+      return rows;
+    })()
+  ) : (
+    <tr>
+      <td colSpan={selectedVerbs.length + 1} className="border px-2 py-1 text-center">
+        لم يتم اختيار الضمائر
+      </td>
+    </tr>
+  )}
+</tbody>
+
+    </table>
+  </li>
+)}
 
                 </ol>
                 
