@@ -1,26 +1,29 @@
 import { useNavigate } from 'react-router-dom';
-import { useLanguage } from './hooks/useLanguage'; // Import the hook
+import { useLanguage } from './hooks/useLanguage';
+import { useEffect, useState } from 'react';
 
 function Hero() {
   const navigate = useNavigate();
   const { language } = useLanguage();
 
-  const handleGetStartedClick = () => {
-    const user = localStorage.getItem('user');
-    if (!user) {
-      navigate('/login');
-    } else {
-      navigate('/Generate');
-    }
-  };
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userType, setUserType] = useState(null);
 
-  const handleGetStarted = () => {
+  useEffect(() => {
     const user = localStorage.getItem('user');
-    if (!user) {
-      navigate('/login');
-    } else {
-      navigate('/Generate-subject');
+    if (user) {
+      setIsLoggedIn(true);
+      try {
+        const parsedUser = JSON.parse(user);
+        setUserType(parsedUser.user_type); // Ensure user_type is stored like: { user_type: "student" }
+      } catch (error) {
+        console.error('Failed to parse user:', error);
+      }
     }
+  }, []);
+
+  const handleNavigate = (path) => {
+    navigate(path);
   };
 
   return (
@@ -43,23 +46,48 @@ function Hero() {
         </p>
 
         <div className="flex gap-4 mt-6 mb-15">
-          <button
-            className="bg-[#FFB3B3] text-[18px] font-semibold border-2 border-black px-12 py-2 rounded-[15px] hover:bg-[#f3a8c7] flex items-center"
-            onClick={handleGetStartedClick}
-          >
-            {language === 'en' ? 'Get started for free' : 'ابدأ مجانًا'}
-            <img src="/Icon.png" alt="icon" className={`ml-2 ${language === 'ar' ? 'scale-x-[-1] ml-[-20px] mr-4' : ''}`} />
-          </button>
+          {!isLoggedIn ? (
+            <button
+              className="bg-[#FFB3B3] text-[18px] font-semibold border-2 border-black px-12 py-2 rounded-[15px] hover:bg-[#f3a8c7] flex items-center"
+              onClick={() => handleNavigate('/login')}
+            >
+              {language === 'en' ? 'Get Started' : 'ابدأ'}
+              <img src="/Icon.png" alt="icon" className={`ml-2 ${language === 'ar' ? 'scale-x-[-1] ml-[-20px] mr-4' : ''}`} />
+            </button>
+          ) : (
+            <>
+              <button
+                className="bg-[#FFB3B3] text-[18px] font-semibold border-2 border-black px-12 py-2 rounded-[15px] hover:bg-[#f3a8c7] flex items-center"
+                onClick={() => handleNavigate('/Generate')}
+              >
+                {language === 'en' ? 'Generate Questions' : 'إنشاء الأسئلة'}
+                <img src="/Icon.png" alt="icon" className={`ml-2 ${language === 'ar' ? 'scale-x-[-1] ml-[-20px] mr-4' : ''}`} />
+              </button>
 
-          <button
-            className="bg-[#FFEF9D] text-[18px] font-semibold border-2 border-black px-12 py-2 rounded-[15px] hover:bg-[#FFE768] flex items-center"
-            onClick={handleGetStarted}
-          >
-            {language === 'en' ? 'Generate Subject' : 'إنشاء الموضوع'}
-            <img src="/Icon.png" alt="icon" className={`ml-2 ${language === 'ar' ? 'scale-x-[-1] ml-[-20px] mr-4' : ''}`} />
-          </button>
+              {userType === 'student' && (
+                <button
+                  className="bg-[#FFEF9D] text-[18px] font-semibold border-2 border-black px-12 py-2 rounded-[15px] hover:bg-[#FFE768] flex items-center"
+                  onClick={() => handleNavigate('/See-Exams')}
+                >
+                  {language === 'en' ? 'See Exams' : 'عرض الامتحانات'}
+                  <img src="/Icon.png" alt="icon" className={`ml-2 ${language === 'ar' ? 'scale-x-[-1] ml-[-20px] mr-4' : ''}`} />
+                </button>
+              )}
+
+              {userType === 'teacher' && (
+                <button
+                  className="bg-[#FFEF9D] text-[18px] font-semibold border-2 border-black px-12 py-2 rounded-[15px] hover:bg-[#FFE768] flex items-center"
+                  onClick={() => handleNavigate('/Generate-subject')}
+                >
+                  {language === 'en' ? 'Generate Subject' : 'إنشاء الموضوع'}
+                  <img src="/Icon.png" alt="icon" className={`ml-2 ${language === 'ar' ? 'scale-x-[-1] ml-[-20px] mr-4' : ''}`} />
+                </button>
+              )}
+            </>
+          )}
         </div>
 
+        {/* Feature Boxes */}
         <div className="flex gap-6 flex-wrap">
           <div className="bg-[#FFEF9D] rounded-[10px] p-4 shadow w-[270px] px-6">
             <h4 className="text-[19px] font-semibold">

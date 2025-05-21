@@ -331,6 +331,20 @@ def generate_integration_instruction():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+#teachers
+@app.route('/see-exams', methods=['GET'])
+def get_teachers():
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("SELECT username FROM user WHERE user_type = ?", ('teacher',))
+        rows = cursor.fetchall()
+    finally:
+        conn.close()
+
+    return jsonify([{'username': row[0]} for row in rows])
+
 
 #ta3lil
 @app.route("/extract-words", methods=["POST"])
@@ -557,6 +571,74 @@ def generate_pdf():
         )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+#synos
+@app.route("/extract-synonyms-words", methods=["POST"])
+def extract_synonyms_words():
+    data = request.json
+    text = data.get("text", "")
+    api_key = data.get("api_key", "")
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+
+    prompt = (
+        "أنت أداة لغوية ذكية. استخرج فقط الكلمات من النص التالي التي يمكن أن يكون لها مرادفات.\n"
+        "تجنب استخراج:\n"
+        "- الحروف مثل: من، في، على، إلى\n"
+        "- الأدوات والضمائر مثل: الذي، التي، أنا، هو\n"
+        "- الكلمات غير المهمة أو المتكررة\n\n"
+        f"النص:\n{text}\n\n"
+        "أعطني فقط قائمة الكلمات التي لها مرادفات، مفصولة بفواصل، مثل: جميل، يساعد، كبير"
+    )
+
+    headers = {"Content-Type": "application/json"}
+    payload = {"contents": [{"parts": [{"text": prompt}]}]}
+
+    response = requests.post(url, headers=headers, data=json.dumps(payload))
+
+    if response.status_code == 200:
+        try:
+            result = response.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+            words = [w.strip() for w in result.split("،") if w.strip()]
+            return jsonify({"synonyms": words})
+        except Exception as e:
+            return jsonify({"error": f"Unexpected format: {e}"}), 500
+    else:
+        return jsonify({"error": f"Gemini API error: {response.status_code}"}), 500
+
+#anto
+@app.route("/extract-antonyms-words", methods=["POST"])
+def extract_antonyms_words():
+    data = request.json
+    text = data.get("text", "")
+    api_key = data.get("api_key", "")
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+
+    prompt = (
+        "أنت أداة لغوية ذكية. استخرج فقط الكلمات من النص التالي التي يمكن أن يكون لها أضداد.\n"
+        "تجنب استخراج:\n"
+        "- الحروف مثل: من، في، على، إلى\n"
+        "- الأدوات والضمائر مثل: الذي، التي، أنا، هو\n"
+        "- الكلمات غير المهمة أو المتكررة\n\n"
+        f"النص:\n{text}\n\n"
+        "أعطني فقط قائمة الكلمات التي لها أضداد، مفصولة بفواصل، مثل: طويل، سعيد، قوي"
+    )
+
+    headers = {"Content-Type": "application/json"}
+    payload = {"contents": [{"parts": [{"text": prompt}]}]}
+
+    response = requests.post(url, headers=headers, data=json.dumps(payload))
+
+    if response.status_code == 200:
+        try:
+            result = response.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+            words = [w.strip() for w in result.split("،") if w.strip()]
+            return jsonify({"antonyms": words})
+        except Exception as e:
+            return jsonify({"error": f"Unexpected format: {e}"}), 500
+    else:
+        return jsonify({"error": f"Gemini API error: {response.status_code}"}), 500
 
 # Database initialization script
 def init_db():

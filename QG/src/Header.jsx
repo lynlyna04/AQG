@@ -177,12 +177,26 @@ function Header() {
             >
               {language === 'en' ? 'Generate Questions' : 'أنشئ'}
             </a>
-            <a
-              onClick={handleGetStarted}
-              className="cursor-pointer px-4 py-2 rounded transition-all duration-300 hover:bg-[#FFEF9D] hover:text-black"
-            >
-              {language === 'en' ? 'Generate Subject' : 'أنشئ موضوع'}
-            </a>
+            {user?.user_type === 'teacher' && (
+  <>
+
+    <a
+      onClick={handleGetStarted}
+      className="cursor-pointer px-4 py-2 rounded transition-all duration-300 hover:bg-[#FFEF9D] hover:text-black"
+    >
+      {language === 'en' ? 'Generate Subject' : 'أنشئ موضوع'}
+    </a>
+  </>
+)}
+
+{user?.user_type === 'student' && (
+  <a
+    onClick={() => navigate('/see-exams')}
+    className="cursor-pointer px-4 py-2 rounded transition-all duration-300 hover:bg-[#FFEF9D] hover:text-black"
+  >
+    {language === 'en' ? 'See Exams' : 'شاهد الإمتحانات'}
+  </a>
+)}
           </li>
         </ul>
 

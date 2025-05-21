@@ -573,7 +573,7 @@ const extractInfinitiveVerbs = async () => {
         }
       };
      
-    const [showConstraintsSelector, setShowConstraintsSelector] = useState(true);
+    const [showConstraintsSelector, setShowConstraintsSelector] = useState();
     const handleConstraintItemSelection = (item) => {
         setGeminiConstraints(prev => 
           prev.includes(item) 

@@ -7,6 +7,7 @@ import Login from './Login.jsx';
 import Subjectone from './Subjectone.jsx';
 import Subjectopt from './Subjectopt.jsx';
 import History from './History.jsx';
+import Studentsect from './Studentsect.jsx';
 
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
           <Route path="/generate-subject" element={<Subjectone />} />
           <Route path="/generate-subjectopt" element={<Subjectopt />} />
           <Route path="/history" element={<History />} />
+          <Route path="/See-Exams" element={<Studentsect/>} />
         </Routes>
       </Router>
     </LanguageProvider>
