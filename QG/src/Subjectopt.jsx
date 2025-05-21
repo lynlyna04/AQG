@@ -96,12 +96,13 @@ function Subjectopt() {
   
   // Function to parse and set pronouns from input
   function handleParsePronouns() {
-    const pronouns = pronounsInput
+    const pronouns = (pronounsInput || "")
       .split(/[,،]/)
       .map(pronoun => pronoun.trim())
       .filter(Boolean);
     setParsedPronouns(pronouns);
   }
+  
     
   const handleTransformTypeChange = (event) => {
     setTransformType(event.target.value);
@@ -111,14 +112,6 @@ function Subjectopt() {
     setTransformInput(event.target.value);
   };
   
-  // Handlers for تعليل (reasoning) input and type
-  const handleTaleelTypeChange = (event) => {
-    setTaleelType(event.target.value);
-  };
-  
-  const handleTaleelWordsChange = (event) => {
-    setTaleelWords(event.target.value);
-  };
   
 
 
@@ -580,7 +573,53 @@ const extractInfinitiveVerbs = async () => {
         }
       };
      
+    const [showConstraintsSelector, setShowConstraintsSelector] = useState(true);
+    const handleConstraintItemSelection = (item) => {
+        setGeminiConstraints(prev => 
+          prev.includes(item) 
+            ? prev.filter(i => i !== item) 
+            : [...prev, item]
+        );
+    };
     
+    const grammarCategories = [
+        {
+          id: 'tense',
+          name: language === "ar" ? "الأزمنة" : "Tenses",
+          items: language === "ar"
+            ? ['الماضي', 'المضارع', 'الأمر']
+            : ['Past', 'Present', 'Imperative']
+        },
+        {
+          id: 'structure',
+          name: language === "ar" ? "التراكيب النحوية" : "Sentence Structures",
+          items: language === "ar"
+            ? ['الفاعل', 'المفعول به', 'الحال', 'التمييز', 'النعت']
+            : ['Subject (Fa3il)', 'Object (Maf3oul bihi)', 'Circumstantial Adverb (Hal)', 'Specification (Tamyeez)', 'Adjective (Na3t)']
+        },
+        {
+          id: 'particles',
+          name: language === "ar" ? "أدوات الربط" : "Linking Words",
+          items: language === "ar"
+            ? ['و', 'ثم', 'لكن', 'أو', 'لأن']
+            : ['And (و)', 'Then (ثم)', 'But (لكن)', 'Or (أو)', 'Because (لأن)']
+        },
+        {
+          id: 'types',
+          name: language === "ar" ? "أنواع الجمل" : "Sentence Types",
+          items: language === "ar"
+            ? ['جملة اسمية', 'جملة فعلية']
+            : ['Nominal Sentence', 'Verbal Sentence']
+        },
+        {
+          id: 'pronouns',
+          name: language === "ar" ? "الضمائر" : "Pronouns",
+          items: language === "ar"
+            ? ['أنا', 'أنتَ', 'هو', 'هي', 'نحن']
+            : ['I (أنا)', 'You (أنتَ)', 'He (هو)', 'She (هي)', 'We (نحن)']
+        }
+      ];
+      
 
   return (
     <>
@@ -793,35 +832,10 @@ const extractInfinitiveVerbs = async () => {
 )}
               
               {/* تعليل (Grammatical reasoning) section */}
-              <div className="flex items-center mb-6 gap-2">
-                <p className="text-gray-800 w-35">
-                  {language === "ar" ? "نوع التعليل:" : "Reasoning type:"}
-                </p>
-                <select
-                  className="border border-gray-400 rounded px-2 py-1"
-                  value={taleelType}
-                  onChange={handleTaleelTypeChange}
-                >
-                  <option value="همزة">همزة</option>
-                  <option value="تاء مفتوحة">تاء مفتوحة</option>
-                  <option value="تاء مربوطة">تاء مربوطة</option>
-                  <option value="ألف لينة">ألف لينة</option>
-                </select>
-              </div>
+             
               
               {/* تعليل words input */}
-              <div className="flex items-center mb-6 gap-2">
-                <p className="text-gray-800 w-35">
-                  {language === "ar" ? "أدخل كلمات التعليل:" : "Enter reasoning words:"}
-                </p>
-                <input
-                  type="text"
-                  className="flex-grow border border-gray-400 rounded px-2 py-1 text-sm"
-                  placeholder={language === "ar" ? "افصل بين الكلمات بفواصل" : "Separate with commas"}
-                  value={taleelWords}
-                  onChange={handleTaleelWordsChange}
-                />
-              </div>
+          
               
               {/* Transformation selector */}
               <div className="flex items-center mb-6 gap-2">
@@ -1028,25 +1042,57 @@ const extractInfinitiveVerbs = async () => {
                 {language === "ar" ? "الوضعية الإدماجية" : "Written Expression"}
               </h3>
 
-              {/* Constraints input */}
-              <div className="flex items-center mb-4 gap-2">
-                <p className="text-gray-800 w-35">
-                  {language === "ar" ? "قواعد مستعملة:" : "Grammar constraints:"}
-                </p>
-                <input
-                  type="text"
-                  className="flex-grow border border-gray-400 rounded px-2 py-1 text-sm"
-                  placeholder={language === "ar" ? "افصل بين القواعد بفواصل" : "e.g. past tense, prepositions"}
-                  onChange={(e) =>
-                    setGeminiConstraints(
-                      e.target.value
-                        .split(/[,،]/)
-                        .map((c) => c.trim())
-                        .filter(Boolean)
-                    )
-                  }
-                />
-              </div>
+              {/* Grammar constraints selector - using the same UI component style as extraction selector */}
+<div className="mb-6 border border-gray-300 rounded p-3">
+  <div className="flex justify-between mb-2">
+    <h4 className="font-semibold">
+      {language === "ar" ? "اختر القواعد المستعملة:" : "Select grammar constraints:"}
+    </h4>
+    <button
+      onClick={() => setShowConstraintsSelector(false)}
+      className="text-gray-600 hover:text-gray-800"
+    >
+      ✕
+    </button>
+  </div>
+  
+  {grammarCategories.map(category => (
+    <div key={category.id} className="mb-3">
+      <h5 className="font-medium text-gray-700 mb-1">{category.name}</h5>
+      <div className="flex flex-wrap gap-2 p-2 bg-gray-50 rounded">
+        {category.items.map((item, index) => (
+          <button
+            key={index}
+            onClick={() => handleConstraintItemSelection(item)}
+            className={`px-2 py-1 rounded text-sm ${
+              geminiConstraints.includes(item)
+                ? 'bg-[#FFB3B3] text-gray-800'
+                : 'bg-gray-200 text-gray-700'
+            } hover:bg-gray-300`}
+          >
+            {item}
+          </button>
+        ))}
+      </div>
+    </div>
+  ))}
+  
+  <div className="mt-3">
+    <p className="text-sm text-gray-600">
+      {language === "ar"
+        ? `القواعد المحددة: ${geminiConstraints.length}`
+        : `Selected constraints: ${geminiConstraints.length}`}
+    </p>
+    {geminiConstraints.length > 0 && (
+      <div className="mt-2 p-2 bg-gray-100 rounded">
+        <p className="text-sm font-medium">
+          {language === "ar" ? "القواعد المحددة:" : "Selected constraints:"}
+        </p>
+        <p className="text-sm">{geminiConstraints.join('، ')}</p>
+      </div>
+    )}
+  </div>
+</div>
 
               {/* Min and Max line inputs */}
               <div className="flex items-center mb-4 gap-4">
