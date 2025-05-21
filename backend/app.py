@@ -330,7 +330,57 @@ def generate_integration_instruction():
     
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
+
+
+#ta3lil
+@app.route("/extract-words", methods=["POST"])
+def extract_words():
+    data = request.json
+    text = data.get("text", "")
+    pattern = data.get("pattern", "")  # "hamza", "taa_maftouha", etc.
+    api_key = data.get("api_key", "")
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+
+    # Map pattern to Arabic explanation
+    pattern_map = {
+        "hamza": "كلمات تحتوي على همزة (ء، أ، إ، ئ، ؤ)",
+        "taa_maftouha": "كلمات تنتهي بتاء مفتوحة (ت)",
+        "taa_marbouta": "كلمات تنتهي بتاء مربوطة (ة)",
+        "alif_layina": "كلمات تنتهي بألف لينة (ى)"
+    }
+
+    if pattern not in pattern_map:
+        return jsonify({"error": "Invalid pattern type"}), 400
+
+    pattern_description = pattern_map[pattern]
+
+    prompt = (
+        f"أنت أداة لغوية دقيقة. المطلوب منك استخراج {pattern_description} فقط من النص التالي.\n"
+        f"- لا تقم بشرح الكلمات أو تحليلها.\n"
+        f"- لا تستخدم علامات اقتباس أو أقواس.\n"
+        f"- أعطني فقط قائمة بالكلمات المطلوبة، مفصولة بفواصل (،).\n\n"
+        f"النص:\n{text}"
+    )
+
+    headers = {"Content-Type": "application/json"}
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}]
+    }
+
+    response = requests.post(url, headers=headers, data=json.dumps(payload))
+
+    if response.status_code == 200:
+        try:
+            words = response.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+            return jsonify({"words": words})
+        except Exception as e:
+            return jsonify({"error": f"Unexpected response format: {e}"}), 500
+    else:
+        return jsonify({"error": f"Gemini API error: {response.status_code}"}), 500
+
+
+
 #verbs
 @app.route("/extract-verbs", methods=["POST"])
 def extract_verbs():

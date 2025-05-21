@@ -523,7 +523,8 @@ const extractInfinitiveVerbs = async () => {
       }
     });
   };
-  const [pronounsInput, setPronounsInput] = useState("");
+    const [pronounsInput, setPronounsInput] = useState("");
+    const [defaultPronouns, setDefaultPronouns] = useState("");
   
   // New states for tense and pronoun type
   const [selectedTense, setSelectedTense] = useState("present");
@@ -548,6 +549,37 @@ const extractInfinitiveVerbs = async () => {
 
   // Calculate the number of selected words
     const selectedWordsCount = selectedVerbs.length;
+
+
+    const extractTaleelWords = async () => {
+        if (!previewText.trim()) {
+          alert("النص فارغ!");
+          return;
+        }
+      
+        try {
+          const res = await fetch("http://localhost:5000/extract-taleel", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              text: previewText,
+              taleel_type: taleelType,
+            }),
+          });
+      
+          const result = await res.json();
+          if (!result.words || typeof result.words !== "string") {
+            alert("لم يتم العثور على كلمات.");
+            return;
+          }
+      
+          setTaleelWords(result.words); // This updates the input with results
+        } catch (err) {
+          console.error("Extraction error:", err);
+          alert("فشل في استخراج الكلمات.");
+        }
+      };
+     
     
 
   return (
@@ -1195,7 +1227,6 @@ const extractInfinitiveVerbs = async () => {
                       </h3>
                     </li>
                   )}
-
 {selectedVerbs && selectedVerbs.length > 0 && (
   <li>
     <h3 className="font-semibold text-lg mb-2">
@@ -1215,74 +1246,39 @@ const extractInfinitiveVerbs = async () => {
         </tr>
       </thead>
       <tbody>
-  {parsedPronouns.length > 0 ? (
-    (() => {
-      let rows = [];
-      let rowCount;
-      
-      // Set the number of rows based on pronoun type
-      if (selectedPronounType === "متكلم") {
-        rowCount = 2;
-      } else if (selectedPronounType === "مخاطب") {
-        rowCount = 5;
-      } else if (selectedPronounType === "غائب") {
-        rowCount = 5;
-      } else {
-        // For "all" option, show all pronouns (default)
-        rowCount = 12; // Total: 2 متكلم + 5 مخاطب + 5 غائب
-      }
-      
-      // Generate the rows with empty cells
-      for (let i = 0; i < rowCount; i++) {
-        // For each pronoun type, use appropriate pronouns based on index
-        let pronoun = "";
-        
-        if (selectedPronounType === "متكلم") {
-          // 2 pronouns for متكلم: أنا, نحن
-          const motakalimPronouns = ["أنا", "نحن"];
-          pronoun = motakalimPronouns[i] || "";
-        } else if (selectedPronounType === "مخاطب") {
-          // 5 pronouns for مخاطب: أنتَ, أنتِ, أنتما, أنتم, أنتن
-          const mokhatebPronouns = ["أنتَ", "أنتِ", "أنتما", "أنتم", "أنتن"];
-          pronoun = mokhatebPronouns[i] || "";
-        } else if (selectedPronounType === "غائب") {
-          // 5 pronouns for غائب: هو, هي, هما, هم, هن
-          const ghaibPronouns = ["هو", "هي", "هما", "هم", "هن"];
-          pronoun = ghaibPronouns[i] || "";
-        } else {
-          // All pronouns in order
-          const allPronouns = [
-            "أنا", "نحن",           // متكلم (2)
-            "أنتَ", "أنتِ", "أنتما", "أنتم", "أنتن", // مخاطب (5)
-            "هو", "هي", "هما", "هم", "هن"     // غائب (5)
-          ];
-          pronoun = allPronouns[i] || "";
-        }
-        
-        rows.push(
-          <tr key={i}>
-            <td className="border px-2 py-1">{pronoun}</td>
-            {selectedVerbs.map((_, verbIndex) => (
-              <td className="border px-2 py-1" key={verbIndex}>...</td>
-            ))}
-          </tr>
-        );
-      }
-      
-      return rows;
-    })()
-  ) : (
-    <tr>
-      <td colSpan={selectedVerbs.length + 1} className="border px-2 py-1 text-center">
-        لم يتم اختيار الضمائر
-      </td>
-    </tr>
-  )}
-</tbody>
-
+        {(() => {
+          // Define all pronouns by category
+          const pronouns = {
+            "متكلم": ["أنا", "نحن"],
+            "مخاطب": ["أنتَ", "أنتِ", "أنتما", "أنتم", "أنتن"],
+            "غائب": ["هو", "هي", "هما", "هم", "هن"]
+          };
+          
+          // Get the list of pronouns to display based on selectedPronounType
+          let displayPronouns = [];
+          if (selectedPronounType === "all") {
+            // For "all", concatenate all pronouns
+            displayPronouns = [...pronouns["متكلم"], ...pronouns["مخاطب"], ...pronouns["غائب"]];
+          } else {
+            // Only show pronouns for the selected type
+            displayPronouns = pronouns[selectedPronounType] || [];
+          }
+          
+          // Generate rows for each pronoun
+          return displayPronouns.map((pronoun, i) => (
+            <tr key={i}>
+              <td className="border px-2 py-1">...</td>
+              {selectedVerbs.map((_, verbIndex) => (
+                <td className="border px-2 py-1" key={verbIndex}>...</td>
+              ))}
+            </tr>
+          ));
+        })()}
+      </tbody>
     </table>
   </li>
 )}
+
 
                 </ol>
                 
