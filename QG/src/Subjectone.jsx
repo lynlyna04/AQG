@@ -16,41 +16,85 @@ function Subjectone() {
     };
     
 
-  const handlePdfUpload = async (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      if (file.type === 'application/pdf') {
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-          const pdfData = new Uint8Array(e.target.result);
-          try {
-            const pdfDoc = await pdfjsLib.getDocument(pdfData).promise;
-            let pdfText = "";
-            for (let i = 1; i <= pdfDoc.numPages; i++) {
-              const page = await pdfDoc.getPage(i);
-              const textContent = await page.getTextContent();
-              pdfText += textContent.items.map(item => item.str).join(" ") + "\n";
+    const handlePdfUpload = async (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        if (file.type === 'application/pdf') {
+          const reader = new FileReader();
+          reader.onload = async (e) => {
+            const pdfData = new Uint8Array(e.target.result);
+            try {
+              const pdfDoc = await pdfjsLib.getDocument(pdfData).promise;
+              let pdfText = "";
+              for (let i = 1; i <= pdfDoc.numPages; i++) {
+                const page = await pdfDoc.getPage(i);
+                const textContent = await page.getTextContent();
+                pdfText += textContent.items.map(item => item.str).join(" ") + "\n";
+              }
+              setInputText(pdfText);
+            } catch (error) {
+              console.error("Error extracting PDF text:", error);
             }
-            setInputText(pdfText);
-          } catch (error) {
-            console.error("Error extracting PDF text:", error);
-          }
-        };
-        reader.readAsArrayBuffer(file);
-      } else if (file.type === 'text/plain') {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          setInputText(e.target.result);
-        };
-        reader.readAsText(file);
-      } else {
-        console.error("Invalid file type");
+          };
+          reader.readAsArrayBuffer(file);
+        } else if (file.type === 'text/plain') {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            setInputText(e.target.result);
+          };
+          reader.readAsText(file);
+        } else {
+          console.error("Invalid file type");
+        }
       }
-    }
     };
-    
+    const [allExtractedVerbs, setAllExtractedVerbs] = useState([]); // from Gemini
+    const extractInfinitiveVerbs = async () => {
+      if (!inputText.trim()) {
+        alert("النص فارغ!");
+        return;
+      }
+
+      try {
+        const res = await fetch("http://localhost:5000/extract-verbs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text: inputText,
+            api_key: "AIzaSyAf33OMbH4JU7PhK48GgjK3rZLxJR3K6Qg",
+          }),
+        });
+
+        const result = await res.json();
+        console.log("Raw API result:", result);
+        
+        let verbList = [];
+        
+        if (Array.isArray(result.verbs)) {
+          verbList = result.verbs;
+        } else if (typeof result.verbs === "string") {
+          const cleaned = result.verbs.replace(/[\[\]'"]+/g, "").trim();
+          verbList = cleaned.split(/[,\،]/).map(v => v.trim()).filter(Boolean);
+        }
+
+        if (verbList.length === 0) {
+          alert("لم يتم العثور على أفعال.");
+          setAllExtractedVerbs(["لم يتم العثور على أفعال."]);
+          localStorage.setItem('allExtractedVerbs', JSON.stringify(["لم يتم العثور على أفعال."])); // ✅ Store here
+          return;
+        }
+
+        setAllExtractedVerbs(verbList);
+        localStorage.setItem('allExtractedVerbs', JSON.stringify(verbList)); // ✅ Store here with actual data
+      } catch (error) {
+        console.error("Error extracting verbs:", error);
+        alert("فشل في استخراج الأفعال.");
+      } 
+    };
+
     const handleNext = async () => {
         setIsLoading(true);
+        await extractInfinitiveVerbs(); // Call the verb extraction function first
         try {
           const response = await fetch("http://localhost:5000/generate-subject", {
             method: "POST",
@@ -75,10 +119,8 @@ function Subjectone() {
           console.error("Failed to fetch subject options:", error);
           setIsLoading(false);
         }
-      };
+    };
       
-
-
 
   return (
     <>
