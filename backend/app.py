@@ -9,13 +9,18 @@ import pdfkit
 from io import BytesIO
 import tempfile
 import requests
+import platform
 import json
+from flask import session 
 
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:5173"])
 
+# Set a secret key for session management
+app.secret_key = 'p4#Fz8@lQm93$gV!xNh2rT!Bw6zKdE@c'
+
 # Define path to wkhtmltopdf executable based on OS
-import platform
+
 
 if platform.system() == 'Windows':
     wkhtmltopdf_path = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
@@ -161,6 +166,118 @@ def generate_instruction(text, constraints, api_key, min_lines=10, max_lines=12)
     else:
         raise Exception(f"Instruction API Error: {response.status_code} - {response.text}")
 
+# Admin routes
+@app.route('/admin/users', methods=['GET'])
+def get_all_users():
+    """Get all users without passwords"""
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute("""
+            SELECT id, username, email, user_type 
+            FROM user 
+            ORDER BY id DESC
+        """)
+        users = cursor.fetchall()
+        
+        users_list = []
+        for user in users:
+            users_list.append({
+                'id': user['id'],
+                'username': user['username'],
+                'email': user['email'],
+                'user_type': user['user_type'],
+            })
+        
+        return jsonify({
+            "users": users_list,
+            "total": len(users_list)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({"message": f"Error: {str(e)}"}), 500
+
+@app.route('/admin/users/<int:user_id>', methods=['PUT'])
+def update_user(user_id):
+    """Update user details"""
+    try:
+        data = request.get_json()
+        username = data.get('username')
+        email = data.get('email')
+        user_type = data.get('user_type')
+        
+        if not all([username, email, user_type]):
+            return jsonify({"message": "Missing required fields"}), 400
+        
+        if user_type not in ['student', 'teacher']:
+            return jsonify({"message": "Invalid user type. Must be either 'student' or 'teacher'"}), 400
+        
+        db = get_db()
+        cursor = db.cursor()
+        
+        cursor.execute("SELECT * FROM user WHERE id = ?", (user_id,))
+        user = cursor.fetchone()
+        
+        if not user:
+            return jsonify({"message": "User not found"}), 404
+        
+        cursor.execute("""
+            SELECT * FROM user 
+            WHERE (email = ? OR username = ?) AND id != ?
+        """, (email, username, user_id))
+        existing_user = cursor.fetchone()
+        
+        if existing_user:
+            if existing_user['email'] == email:
+                return jsonify({"message": "Email already exists"}), 400
+            if existing_user['username'] == username:
+                return jsonify({"message": "Username already exists"}), 400
+        
+        # No updated_at
+        cursor.execute("""
+            UPDATE user 
+            SET username = ?, email = ?, user_type = ?
+            WHERE id = ?
+        """, (username, email, user_type, user_id))
+        
+        db.commit()
+        
+        cursor.execute("""
+            SELECT id, username, email, user_type 
+            FROM user WHERE id = ?
+        """, (user_id,))
+        updated_user = cursor.fetchone()
+        
+        return jsonify({"message": "User updated successfully"}), 200
+        
+    except Exception as e:
+        return jsonify({"message": f"Error: {str(e)}"}), 500
+
+@app.route('/admin/users/<int:user_id>', methods=['DELETE'])
+def delete_user(user_id):
+    """Delete user from database"""
+    try:
+        current_user_id = session.get('user_id')
+        if current_user_id is not None and int(current_user_id) == user_id:
+            return jsonify({"message": "You cannot delete your own account"}), 403
+        
+        db = get_db()
+        cursor = db.cursor()
+        
+        cursor.execute("SELECT * FROM user WHERE id = ?", (user_id,))
+        user = cursor.fetchone()
+        
+        if not user:
+            return jsonify({"message": "User not found"}), 404
+        
+        cursor.execute("DELETE FROM user WHERE id = ?", (user_id,))
+        db.commit()
+        
+        return jsonify({"message": "User deleted successfully"}), 200
+        
+    except Exception as e:
+        return jsonify({"message": f"Error: {str(e)}"}), 500
+
 # User authentication routes
 @app.route('/signup', methods=['POST'])
 def signup():
@@ -178,14 +295,13 @@ def signup():
         if user_type not in ['student', 'teacher']:
             return jsonify({"message": "Invalid user type. Must be either 'student' or 'teacher'"}), 400
         
-        # Check if user exists
+        # Check if user exists (by email or username)
         db = get_db()
         cursor = db.cursor()
-        cursor.execute("SELECT * FROM user WHERE email = ?", (email,))
+        cursor.execute("SELECT * FROM user WHERE email = ? OR username = ?", (email, username))
         user = cursor.fetchone()
-        
         if user:
-            return jsonify({"message": "User already exists!"}), 400
+            return jsonify({"message": "User already exists! change email or username."}), 400
         
         # Hash password
         salt = bcrypt.gensalt(10)
@@ -213,7 +329,6 @@ def login():
         if not all([email, password]):
             return jsonify({"message": "Missing required fields"}), 400
         
-        # Check if user exists
         db = get_db()
         cursor = db.cursor()
         cursor.execute("SELECT * FROM user WHERE email = ?", (email,))
@@ -222,16 +337,167 @@ def login():
         if not user:
             return jsonify({"message": "Invalid email or password!"}), 400
         
-        # Check password
         if bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
+            # ✅ Store user ID in session
+            session['user_id'] = user['id']
             return jsonify({
                 "username": user['username'],
                 "email": user['email'],
-                "user_type": user['user_type']  # Return user type in the response
+                "user_type": user['user_type']
             }), 200
         else:
             return jsonify({"message": "Invalid email or password!"}), 400
     
+    except Exception as e:
+        return jsonify({"message": f"Error: {str(e)}"}), 500
+    
+@app.route('/profile', methods=['PUT'])
+def update_profile():
+    try:
+        data = request.get_json()
+        username = data.get('username')
+        email = data.get('email')
+        current_email = data.get('currentEmail')
+        
+        if not all([username, email, current_email]):
+            return jsonify({"message": "Missing required fields"}), 400
+        
+        db = get_db()
+        cursor = db.cursor()
+        
+        # Check if user exists with current email
+        cursor.execute("SELECT * FROM user WHERE email = ?", (current_email,))
+        user = cursor.fetchone()
+        
+        if not user:
+            return jsonify({"message": "User not found"}), 404
+        
+       # Check if new email or username is already taken by another user
+        if email != current_email or username != user['username']:
+            cursor.execute(
+                "SELECT * FROM user WHERE (email = ? OR username = ?) AND email != ?",
+                (email, username, current_email)
+            )
+            existing_user = cursor.fetchone()
+            if existing_user:
+                if existing_user['email'] == email:
+                    return jsonify({"message": "Email already exists"}), 400
+                if existing_user['username'] == username:
+                    return jsonify({"message": "Username already exists"}), 400
+        
+        # Update user information
+        cursor.execute("""
+            UPDATE user 
+            SET username = ?, email = ? 
+            WHERE email = ?
+        """, (username, email, current_email))
+        
+        db.commit()
+        
+        return jsonify({"message": "Profile updated successfully"}), 200
+        
+    except Exception as e:
+        return jsonify({"message": f"Error: {str(e)}"}), 500
+
+
+@app.route('/password', methods=['PUT'])
+def update_password():
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        current_password = data.get('currentPassword')
+        new_password = data.get('newPassword')
+        
+        if not all([email, current_password, new_password]):
+            return jsonify({"message": "Missing required fields"}), 400
+        
+        db = get_db()
+        cursor = db.cursor()
+        
+        # Check if user exists
+        cursor.execute("SELECT * FROM user WHERE email = ?", (email,))
+        user = cursor.fetchone()
+        
+        if not user:
+            return jsonify({"message": "User not found"}), 404
+        
+        # Verify current password
+        if not bcrypt.checkpw(current_password.encode('utf-8'), user['password'].encode('utf-8')):
+            return jsonify({"message": "Current password is incorrect"}), 400
+        
+        # Hash new password
+        hashed_new_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        
+        # Update password
+        cursor.execute("UPDATE user SET password = ? WHERE email = ?", (hashed_new_password, email))
+        db.commit()
+        
+        return jsonify({"message": "Password updated successfully"}), 200
+        
+    except Exception as e:
+        return jsonify({"message": f"Error: {str(e)}"}), 500
+
+
+@app.route('/account', methods=['DELETE'])
+def delete_account():
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+        
+        if not all([email, password]):
+            return jsonify({"message": "Missing required fields"}), 400
+        
+        db = get_db()
+        cursor = db.cursor()
+        
+        # Check if user exists
+        cursor.execute("SELECT * FROM user WHERE email = ?", (email,))
+        user = cursor.fetchone()
+        
+        if not user:
+            return jsonify({"message": "User not found"}), 404
+        
+        # Verify password
+        if not bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
+            return jsonify({"message": "Password is incorrect"}), 400
+        
+        # Delete user account
+        cursor.execute("DELETE FROM user WHERE email = ?", (email,))
+        db.commit()
+        
+        return jsonify({"message": "Account deleted successfully"}), 200
+        
+    except Exception as e:
+        return jsonify({"message": f"Error: {str(e)}"}), 500
+
+
+# Optional: Get user profile information
+@app.route('/profile', methods=['GET'])
+def get_profile():
+    try:
+        # You might want to implement JWT tokens for better security
+        # For now, we'll expect the email to be passed as a query parameter
+        email = request.args.get('email')
+        
+        if not email:
+            return jsonify({"message": "Email is required"}), 400
+        
+        db = get_db()
+        cursor = db.cursor()
+        
+        cursor.execute("SELECT username, email, user_type FROM user WHERE email = ?", (email,))
+        user = cursor.fetchone()
+        
+        if not user:
+            return jsonify({"message": "User not found"}), 404
+        
+        return jsonify({
+            "username": user['username'],
+            "email": user['email'],
+            "user_type": user['user_type']
+        }), 200
+        
     except Exception as e:
         return jsonify({"message": f"Error: {str(e)}"}), 500
 
@@ -344,54 +610,6 @@ def get_teachers():
         conn.close()
 
     return jsonify([{'username': row[0]} for row in rows])
-
-
-#ta3lil
-@app.route("/extract-words", methods=["POST"])
-def extract_words():
-    data = request.json
-    text = data.get("text", "")
-    pattern = data.get("pattern", "")  # "hamza", "taa_maftouha", etc.
-    api_key = data.get("api_key", "")
-
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
-
-    # Map pattern to Arabic explanation
-    pattern_map = {
-        "hamza": "كلمات تحتوي على همزة (ء، أ، إ، ئ، ؤ)",
-        "taa_maftouha": "كلمات تنتهي بتاء مفتوحة (ت)",
-        "taa_marbouta": "كلمات تنتهي بتاء مربوطة (ة)",
-        "alif_layina": "كلمات تنتهي بألف لينة (ى)"
-    }
-
-    if pattern not in pattern_map:
-        return jsonify({"error": "Invalid pattern type"}), 400
-
-    pattern_description = pattern_map[pattern]
-
-    prompt = (
-        f"أنت أداة لغوية دقيقة. المطلوب منك استخراج {pattern_description} فقط من النص التالي.\n"
-        f"- لا تقم بشرح الكلمات أو تحليلها.\n"
-        f"- لا تستخدم علامات اقتباس أو أقواس.\n"
-        f"- أعطني فقط قائمة بالكلمات المطلوبة، مفصولة بفواصل (،).\n\n"
-        f"النص:\n{text}"
-    )
-
-    headers = {"Content-Type": "application/json"}
-    payload = {
-        "contents": [{"parts": [{"text": prompt}]}]
-    }
-
-    response = requests.post(url, headers=headers, data=json.dumps(payload))
-
-    if response.status_code == 200:
-        try:
-            words = response.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
-            return jsonify({"words": words})
-        except Exception as e:
-            return jsonify({"error": f"Unexpected response format: {e}"}), 500
-    else:
-        return jsonify({"error": f"Gemini API error: {response.status_code}"}), 500
 
 
 

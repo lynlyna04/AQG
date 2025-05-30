@@ -42,7 +42,7 @@ function Hero() {
         <p className="text-[22px] font-semibold w-140 mb-5">
           {language === 'en'
             ? 'A question generator for elementary school students and a helpful tool for teachers to create subjects with ready-to-use templates.'
-            : 'مولد أسئلة لطلاب المرحلة الابتدائية، وأداة مفيدة للمعلمين لإنشاء مواضيع باستخدام قوالب جاهزة.'}
+            : 'مولد أسئلة لطلاب المرحلة الابتدائية، وأداة مفيدة للمعلمين لإنشاء مواضيع باستخدام امتحانات جاهزة.'}
         </p>
 
         <div className="flex gap-4 mt-6 mb-15">
@@ -79,7 +79,7 @@ function Hero() {
                   className="bg-[#FFEF9D] text-[18px] font-semibold border-2 border-black px-12 py-2 rounded-[15px] hover:bg-[#FFE768] flex items-center"
                   onClick={() => handleNavigate('/Generate-subject')}
                 >
-                  {language === 'en' ? 'Generate Subject' : 'إنشاء الموضوع'}
+                  {language === 'en' ? 'Generate Exam' : 'إنشاء الموضوع'}
                   <img src="/Icon.png" alt="icon" className={`ml-2 ${language === 'ar' ? 'scale-x-[-1] ml-[-20px] mr-4' : ''}`} />
                 </button>
               )}
@@ -95,8 +95,8 @@ function Hero() {
             </h4>
             <p className="text-[11px]">
               {language === 'en'
-                ? 'Generate fun and interactive Arabic questions for elementary students—multiple choice, true/false, and open-ended.'
-                : 'أنشئ أسئلة عربية ممتعة وتفاعلية لطلاب المرحلة الابتدائية — اختيار من متعدد، صح/خطأ، وأسئلة مفتوحة.'}
+                ? 'Generate fun and interactive Arabic questions for elementary students —Grammar Questions, open-ended and writing prompts.'
+                : 'أنشئ أسئلة عربية ممتعة وتفاعلية لطلاب المرحلة الابتدائية — اختيار قواعد، أسئلة مفتوحةووضعيات إدماجبة.'}
             </p>
           </div>
 
