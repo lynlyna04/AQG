@@ -259,7 +259,7 @@ function Header() {
                 onClick={handleGetStartedClick}
                 className="cursor-pointer px-4 py-2 rounded transition-all duration-300 hover:bg-[#FFEF9D] hover:text-black"
               >
-                {language === "en" ? "Generate Questions" : "أنشئ"}
+                {language === "en" ? "Generate Questions" : " أنشئ أسئلة"}
               </a>
               {user?.user_type === "teacher" && (
                 <>
